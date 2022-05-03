@@ -1,0 +1,112 @@
+[
+    {
+        "value": "green",
+        "color": "#4CAF50",
+        "colors": [
+            "#A5D6A7",
+            "#66BB6A",
+            "#388E3C",
+            "#1B5E20"
+        ]
+    },
+    {
+        "value": "cyan",
+        "color": "#00BCD4",
+        "colors": [
+            "#80DEEA",
+            "#26C6DA",
+            "#0097A7",
+            "#006064"
+        ]
+    },
+    {
+        "value": "light-blue",
+        "color": "#03A9F4",
+        "colors": [
+            "#81D4FA",
+            "#29B6F6",
+            "#0288D1",
+            "#01579B"
+        ]
+    },
+    {
+        "value": "deep-purple",
+        "color": "#673AB7",
+        "colors": [
+            "#B39DDB",
+            "#7E57C2",
+            "#512DA8",
+            "#311B92"
+        ]
+    },
+    {
+        "value": "pink",
+        "color": "#E91E63",
+        "colors": [
+            "#F48FB1",
+            "#EC407A",
+            "#C2185B",
+            "#880E4F"
+        ]
+    },
+    {
+        "value": "red",
+        "color": "#F44336",
+        "colors": [
+            "#EF9A9A",
+            "#EF5350",
+            "#D32F2F",
+            "#B71C1C"
+        ]
+    },
+    {
+        "value": "teal",
+        "color": "#009688",
+        "colors": [
+            "#80CBC4",
+            "#26A69A",
+            "#00796B",
+            "#004D40"
+        ]
+    },
+    {
+        "value": "blue-grey",
+        "color": "#607D8B",
+        "colors": [
+            "#B0BEC5",
+            "#78909C",
+            "#455A64",
+            "#263238"
+        ]
+    },
+    {
+        "value": "brown",
+        "color": "#795548",
+        "colors": [
+            "#BCAAA4",
+            "#8D6E63",
+            "#5D4037",
+            "#3E2723"
+        ]
+    },
+    {
+        "value": "lime",
+        "color": "#CDDC39",
+        "colors": [
+            "#E6EE9C",
+            "#D4E157",
+            "#AFB42B",
+            "#827717"
+        ]
+    },
+    {
+        "value": "orange",
+        "color": "#FF9800",
+        "colors": [
+            "#FFCC80",
+            "#FFA726",
+            "#F57C00",
+            "#E65100"
+        ]
+    }
+]
