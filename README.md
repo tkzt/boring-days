@@ -30,7 +30,7 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 
 ![](doc-assets/sign-in.png)
 
-应用安全方面，Lean Cloud 采用白名单机制，所以还需要在应用控制台 `设置-安全中心-Web 安全域名` 中添加 `https://boring-plans.github.io/boring-days`。
+应用安全方面，Lean Cloud 采用白名单机制。默认情况下，Lean Cloud 不限制任何域名，这显然是不安全的，所以还需要在应用控制台 `设置-安全中心-Web 安全域名` 中添加 `https://boring-plans.github.io`（如果设置了，则仅允许指定的域名）。
 
 <small>* Boring Days 的数据存储全权交给 Lean Cloud</small>
 <small>* 显然，App ID 和 App Key 并非友好可读，所以建议勾选记住我</small>
