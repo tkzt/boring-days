@@ -6,7 +6,7 @@
 
 ## Preface
 
-这是一个以热力图形式展示记录的记账类小玩具。它基于 `Vue3`、`Vite2`、`Vuetify3-Beta`，基本效果是这样的：
+这是一个以热力图形式展示记录的记账类小玩具。它基于 `Vue3`、`Vite2`、`Vuetify3-Beta` 以及 `Lean Cloud`，基本效果是这样的：
 
 ![](doc-assets/701651589042_.pic.jpg)
 ![](doc-assets/721651589827_.pic.jpg)

@@ -28,4 +28,5 @@ export default defineConfig({
     ]
   },
   */
+  base: '/boring-plans',
 });
