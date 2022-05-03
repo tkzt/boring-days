@@ -1,8 +1,11 @@
 name: cd
 
 on:
-  push: [main]
-  pull_request: [main]
+  push:
+    branches: [main]
+  pull_request: 
+    branches: [main]
+    
 jobs:
   cd:
     runs-on: ${{ matrix.os }}
