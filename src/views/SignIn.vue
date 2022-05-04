@@ -22,7 +22,7 @@
           class="d-flex align-center text-h5 justify-center mb-6 pt-0"
         >
           <v-img
-            src="/src/assets/logo.svg"
+            src="logo.svg"
             width="28"
             class="flex-grow-0 mr-4"
           />
