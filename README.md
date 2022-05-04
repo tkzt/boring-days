@@ -1,17 +1,15 @@
 # Boring Days
 
-## Before Everything
-
 今天（2022-05-03）也是等待 Vuetify 3 和 上海 Release 的一天。
 
 ## Preface
 
 这是一个以热力图形式展示记录的记账类小玩具。它基于 `Vue3`、`Vite2`、`Vuetify3-Beta` 以及 `Lean Cloud`，基本效果是这样的：
 
-![](doc-assets/701651589042_.pic.jpg)
-![](doc-assets/721651589827_.pic.jpg)
-![](doc-assets/711651589827_.pic.jpg)
-![](doc-assets/731651589854_.pic.jpg)
+![](doc-assets/701651589042_.pic.png)
+![](doc-assets/721651589827_.pic.png)
+![](doc-assets/711651589827_.pic.png)
+![](doc-assets/731651589854_.pic.png)
 
 
 ## Getting Started
@@ -32,14 +30,13 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 
 应用安全方面，Lean Cloud 采用白名单机制。默认情况下，Lean Cloud 不限制任何域名，这显然是不安全的，所以还需要在应用控制台 `设置-安全中心-Web 安全域名` 中添加 `https://boring-plans.github.io`（如果设置了，则仅允许指定的域名）。
 
-<small>* Boring Days 的数据存储全权交给 Lean Cloud</small>
-<small>* 显然，App ID 和 App Key 并非友好可读，所以建议勾选记住我</small>
+![](doc-assets/set-white-list.png)
 
 ### 新建主题
 
 而后，App 中，点击右下角新建按钮 -> 点击新主题 -> 填写名称、选择主题色、设置高低值 -> 提交。
 
-![](doc-assets/741651593496_.pic.jpg)
+![](doc-assets/741651593496_.pic.png)
 ![](doc-assets/751651593496_.pic.jpg)
 ![](doc-assets/761651593496_.pic.jpg)
 
@@ -51,4 +48,9 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 ![](doc-assets/781651594247_.pic.jpg)
 ![](doc-assets/791651594341_.pic.jpg)
 
-需要注意的是，如需补充本日以前的数据，只能通过 Lean Cloud 应用控制台操作。
+## Note That
+
+- Boring Days 的数据存储全权交给 Lean Cloud
+- 显然，App ID 和 App Key 并非友好可读，所以建议勾选记住我
+- 由于时间与地域的关系，如需补充本日以前的数据，只能通过 Lean Cloud 应用控制台操作
+- 实践表明，Vuetify 3-Beta 在 Chromium 内核下表现良好，其余恐鸡飞狗跳

@@ -4,7 +4,7 @@
     :fullscreen="smAndDown"
     class="d-flex align-center justify-center"
   >
-    <v-card>
+    <v-card :width="smAndDown?'auto':500">
       <!-- close button -->
       <v-btn
         icon
