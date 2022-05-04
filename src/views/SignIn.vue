@@ -91,13 +91,29 @@
           />
         </v-col>
 
+        <!-- remember me -->
+        <v-col
+          cols="12"
+          class="py-0 px-1"
+        >
+          <v-checkbox
+            v-model="rememberMe"
+            label="记住我的登录信息"
+            hide-details
+            density="comfortable"
+            color="primary"
+            class="flex-grow-0"
+          />
+        </v-col>
+
         <!-- submit button -->
         <v-col
           cols="12"
-          class="d-flex align-center justify-center"
+          class="d-flex align-center justify-center mt-4"
         >
           <v-btn
             color="primary"
+            block
             :disabled="submitting"
             @click="submit"
           >
@@ -111,14 +127,6 @@
               Sign In
             </template>
           </v-btn>
-          <v-spacer />
-          <v-checkbox
-            v-model="rememberMe"
-            label="记住我的信息"
-            hide-details
-            color="primary"
-            class="flex-grow-0"
-          />
         </v-col>
       </v-card>
     </v-col>
