@@ -1,4 +1,4 @@
-const signedInKey = 'bd-signed-in';
+const signedInKey = 'signed-in';
 
 export const getSigned = () => localStorage.getItem(signedInKey)
 || sessionStorage.getItem(signedInKey);

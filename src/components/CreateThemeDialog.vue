@@ -231,7 +231,7 @@ import {
 } from 'vue';
 import { useDisplay } from 'vuetify';
 import { hasValue } from '@/utils/common';
-import { success } from '@/utils/notification';
+import notify from '@/utils/notification';
 import colorsJson from '@/assets/colors.json';
 import { useStore } from 'vuex';
 import AV from 'leancloud-storage';
@@ -332,9 +332,14 @@ async function createTheme() {
 }
 
 async function checkRepeat() {
-  const query = new AV.Query('Theme');
-  const result = await query.equalTo('name', form.name).find();
-  return result.length > 0;
+  try {
+    const query = new AV.Query('Theme');
+    const result = await query.equalTo('name', form.name).find();
+    return result.length > 0;
+  } catch {
+    // theme does't exist yet
+    return false;
+  }
 }
 
 async function submit() {
@@ -350,11 +355,11 @@ async function submit() {
         await createTheme();
         emit('update:modelValue', false);
         emit('reload');
-        success(store, '主题已创建');
+        notify.success(store, '主题已创建');
       }
     } catch (err) {
       error.model = true;
-      error.indication = err;
+      error.indication = err.message || 'Unknown Exception';
     }
 
     submitting.value = false;

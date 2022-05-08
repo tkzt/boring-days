@@ -127,6 +127,8 @@ import {
 import colorsJson from '@/assets/colors.json';
 import Dayjs from 'dayjs';
 import AV from 'leancloud-storage';
+import notify from '@/utils/notification';
+import { useStore } from 'vuex';
 import DayCard from './DayCard.vue';
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
 import EditThemeDialog from './EditThemeDialog.vue';
@@ -142,6 +144,7 @@ const props = defineProps({
 const emit = defineEmits(['reloadAll', 'reloadCurrent']);
 
 // reactive
+const store = useStore();
 const theCard = ref(null);
 const padding = ref(0);
 const comment = ref(-1);
@@ -183,21 +186,30 @@ function genDaysKeys(d = null) {
 
 async function getRecords() {
   loading.value = true;
-  const theme = AV.Object.createWithoutData('Theme', props.theme.id);
-  const themeQuery = new AV.Query('Record');
-  themeQuery.equalTo('theme', theme);
-  const dateQueryStart = new AV.Query('Record');
-  dateQueryStart.greaterThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
-  const dateQueryStop = new AV.Query('Record');
-  dateQueryStop.lessThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
 
-  (await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()).forEach((r) => {
-    const dateKey = new Dayjs(r.attributes.lastModifiedAt).format('YYYY-MM-DD');
-    days[dateKey] = {
-      value: r.attributes.value,
-      comment: r.attributes.comment,
-    };
-  });
+  try {
+    const theme = AV.Object.createWithoutData('Theme', props.theme.id);
+    const themeQuery = new AV.Query('Record');
+    themeQuery.equalTo('theme', theme);
+    const dateQueryStart = new AV.Query('Record');
+    dateQueryStart.greaterThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
+    const dateQueryStop = new AV.Query('Record');
+    dateQueryStop.lessThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
+    (
+      await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()
+    ).forEach((r) => {
+      const dateKey = new Dayjs(r.attributes.lastModifiedAt).format('YYYY-MM-DD');
+      days[dateKey] = {
+        value: r.attributes.value,
+        comment: r.attributes.comment,
+      };
+    });
+  } catch (err) {
+    if (!err.message.includes("Class or object doesn't exists.")) {
+      notify.error(store, err.message || 'Unknown Exception');
+    }
+  }
+
   loading.value = false;
 }
 

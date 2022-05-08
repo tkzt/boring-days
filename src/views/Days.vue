@@ -71,20 +71,31 @@
     </v-col>
 
     <!-- themes -->
+    <template v-else-if="themes && themes.length>0">
+      <v-col
+        v-for="item, index in themes"
+        :key="index"
+        cols="12"
+        lg="6"
+        md="8"
+      >
+        <ThemeCard
+          :key="themeKeys[item.attributes.name]"
+          :theme="item"
+          @reload-all="getThemes"
+          @reload-current="refreshTheme"
+        />
+      </v-col>
+    </template>
     <v-col
-      v-for="item, index in themes"
       v-else
-      :key="index"
-      cols="12"
-      lg="6"
-      md="8"
     >
-      <ThemeCard
-        :key="themeKeys[item.attributes.name]"
-        :theme="item"
-        @reload-all="getThemes"
-        @reload-current="refreshTheme"
-      />
+      <v-card
+        flat
+        class="pa-2 text-caption"
+      >
+        🎨 从创建一个主题开始吧～
+      </v-card>
     </v-col>
   </v-container>
 
@@ -197,24 +208,31 @@ const aboutDialog = reactive({
   key: new Date().getTime(),
 });
 
-function signOut() {
+async function signOut() {
   store.commit('SET_LOADING', true);
-  store.dispatch('resetSignedIn');
+  await store.dispatch('resetSignedIn');
   removeSigned();
-  avatarMenu.value = false;
   setTimeout(() => {
     store.commit('SET_LOADING', false);
+
+    // reload to reset AV
+    window.location.reload();
   }, 800);
   router.push('/sign-in');
 }
 
 async function getThemes() {
   loading.value = true;
-  const query = new AV.Query('Theme');
-  themes.value = await query.find();
-  themes.value.forEach((t) => {
-    themeKeys[t.attributes.name] = new Date().getTime();
-  });
+  try {
+    const query = new AV.Query('Theme');
+    themes.value = await query.find();
+    themes.value.forEach((t) => {
+      themeKeys[t.attributes.name] = new Date().getTime();
+    });
+  } catch {
+    // initially, Theme Object doesn't exist
+  }
+
   loading.value = false;
 }
 

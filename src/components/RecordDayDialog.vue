@@ -154,7 +154,8 @@ import {
 } from 'vue';
 import { useDisplay } from 'vuetify';
 import { hasValue } from '@/utils/common';
-import { success } from '@/utils/notification';
+import notify from '@/utils/notification';
+
 import { useStore } from 'vuex';
 import AV from 'leancloud-storage';
 
@@ -287,10 +288,10 @@ async function submit() {
       }
       emit('update:modelValue', false);
       emit('reload', form.theme);
-      success(store, '已提交');
+      notify.success(store, '已提交');
     } catch (err) {
       error.model = true;
-      error.indication = err;
+      error.indication = err.message || 'Unknown Exception';
     }
     submitting.value = false;
   } else {

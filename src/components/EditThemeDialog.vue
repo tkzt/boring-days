@@ -231,7 +231,7 @@ import {
 } from 'vue';
 import { useDisplay } from 'vuetify';
 import { hasValue } from '@/utils/common';
-import { success } from '@/utils/notification';
+import notify from '@/utils/notification';
 import colorsJson from '@/assets/colors.json';
 import { useStore } from 'vuex';
 import AV from 'leancloud-storage';
@@ -355,7 +355,7 @@ async function submit() {
         await updateTheme(id);
         emit('update:modelValue', false);
         emit('reload');
-        success(store, '更新已保存');
+        notify.success(store, '更新已保存');
       }
     } catch (err) {
       error.model = true;

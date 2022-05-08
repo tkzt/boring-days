@@ -26,5 +26,6 @@ const store = useStore();
 const iconLevelMap = reactive({
   info: 'mdi-information',
   success: 'mdi-check-circle',
+  error: 'mdi-alert-circle',
 });
 </script>

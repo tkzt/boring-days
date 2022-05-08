@@ -57,7 +57,7 @@
 <script setup>
 import { ref } from 'vue';
 import AV from 'leancloud-storage';
-import { success } from '@/utils/notification';
+import notify from '@/utils/notification';
 import { useStore } from 'vuex';
 
 const props = defineProps({
@@ -76,7 +76,7 @@ async function submit() {
   const theme = AV.Object.createWithoutData('Theme', props.theme.id);
   await theme.destroy();
   submitting.value = false;
-  success(store, '主题已删除');
+  notify.success(store, '主题已删除');
   emit('update:modelValue', false);
   emit('reload');
 }

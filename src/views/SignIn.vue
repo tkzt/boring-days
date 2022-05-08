@@ -141,7 +141,7 @@ import { useStore } from 'vuex';
 import { initAV } from '../utils/leancloud';
 
 // normal
-const signedInKey = 'bd-signed-in';
+const signedInKey = 'signed-in';
 
 // data
 const router = useRouter();
