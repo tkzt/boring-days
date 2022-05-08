@@ -191,7 +191,7 @@ async function getRecords() {
   const dateQueryStop = new AV.Query('Record');
   dateQueryStop.lessThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
 
-  (await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).find()).forEach((r) => {
+  (await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()).forEach((r) => {
     const dateKey = new Dayjs(r.attributes.lastModifiedAt).format('YYYY-MM-DD');
     days[dateKey] = {
       value: r.attributes.value,
