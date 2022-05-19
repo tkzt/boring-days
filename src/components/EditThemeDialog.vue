@@ -2,7 +2,6 @@
   <v-dialog
     :model-value="value"
     :fullscreen="smAndDown"
-    class="d-flex align-center justify-center"
   >
     <v-card color="white">
       <!-- close button -->

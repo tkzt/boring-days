@@ -2,9 +2,10 @@
   <v-dialog
     :model-value="value"
     :fullscreen="smAndDown"
-    class="d-flex align-center justify-center"
   >
-    <v-card :width="smAndDown?'auto':500">
+    <v-card
+      :width="smAndDown?'auto':500"
+    >
       <!-- close button -->
       <v-btn
         icon

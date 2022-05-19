@@ -24,16 +24,35 @@
           class="indexes text-caption"
         >
           <div class="indexes-content">
-            <div
-              v-for="i,idx in indexes.result"
-              :key="idx"
-            >
-              <template v-if="typeof i === 'object'">
+            <template v-if="indexes.result">
+              <div class="index-title">
+                年：
+              </div>
+              <div
+                v-for="i,idx in indexes.result"
+                :key="idx"
+              >
                 {{ i.index }}: {{ i.value.toFixed(2) }}
-              </template>
-              <template v-else>{{ i }}</template>
-            </div>
+              </div>
+              <v-divider
+                class="my-2"
+                color="white"
+              />
+              <div class="index-title">
+                月：
+              </div>
+              <div
+                v-for="i,idx in indexes.monthResult"
+                :key="idx"
+              >
+                {{ i.index }}: {{ i.value.toFixed(2) }}
+              </div>
+            </template>
+            <template v-else>
+              无统计指标或无数据~
+            </template>
           </div>
+
           <div class="tail" />
         </v-card>
       </span>
@@ -43,12 +62,20 @@
         anchor="start top"
       >
         <template #activator="{props: p}">
-          <v-icon
+          <v-btn
+            size="xs"
+            icon
+            elevation="0"
             v-bind="p"
-            style="cursor: pointer"
+            class="ml-2"
           >
-            mdi-dots-horizontal
-          </v-icon>
+            <v-icon
+              size="sm"
+              style="cursor: pointer"
+            >
+              mdi-dots-horizontal
+            </v-icon>
+          </v-btn>
         </template>
         <v-list
           density="compact"
@@ -154,7 +181,7 @@ const loadingHeight = ref(0);
 const deleteDialog = ref(false);
 const editDialog = ref(false);
 const rightClickMenu = ref(false);
-const indexes = reactive({ show: false, result: [] });
+const indexes = reactive({ show: false, result: [], monthResult: [] });
 const days = reactive({});
 
 const colors = computed(
@@ -240,8 +267,7 @@ function calcMinMax(values) {
   return [valueSorted[0], valueSorted[values.length - 1]];
 }
 
-function calcIndexes(idxes) {
-  const values = Object.values(days).filter((v) => !!v).map((v) => v.value);
+function calcIndexes(idxes, values) {
   const result = [];
   if (values.length) {
     idxes.forEach((idx) => {
@@ -272,13 +298,28 @@ function calcIndexes(idxes) {
 }
 
 function showIndexes() {
-  const indexesResult = calcIndexes(props.theme.attributes.indexes || []);
-  indexes.show = true;
+  // year
+  const indexesResult = calcIndexes(
+    props.theme.attributes.indexes || [],
+    Object.values(days).filter((v) => !!v).map((v) => v.value),
+  );
+
+  // month
+  const monthIndexesResult = calcIndexes(
+    props.theme.attributes.indexes || [],
+    Object
+      .entries(days)
+      .filter(([k, v]) => !!v && new Date(k).getMonth() === new Date().getMonth())
+      .map(([, v]) => v.value),
+  );
   if (indexesResult.length > 0) {
     indexes.result = indexesResult;
+    indexes.monthResult = monthIndexesResult;
   } else {
-    indexes.result = ['无统计指标~'];
+    indexes.result = null;
+    indexes.monthResult = null;
   }
+  indexes.show = true;
 }
 
 // life circle
@@ -320,7 +361,7 @@ onBeforeUnmount(() => {
   word-wrap: break-word;
   word-break: break-all;
   max-width: 160px;
-  max-height: 125px;
+  max-height: 160px;
   padding: 4px 8px;
   user-select: none;
   line-height: 12px;
@@ -340,5 +381,10 @@ onBeforeUnmount(() => {
 
 .theme-name {
   cursor: pointer;
+}
+
+.index-title{
+  font-weight: bold;
+  margin-bottom: 3px;
 }
 </style>

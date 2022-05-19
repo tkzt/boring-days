@@ -38,7 +38,7 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 而后，App 中，点击右下角新建按钮 -> 点击新主题 -> 填写名称、选择主题色、设置高低值 -> 提交。
 
 <div>
-<img src="doc-assets/741651593496_.pic.png" width="30%"/>
+<img src="doc-assets/31652967627_.pic.jpg" width="30%"/>
 <img src="doc-assets/751651593496_.pic.jpg" width="30%"/>
 <img src="doc-assets/761651593496_.pic.jpg" width="30%"/>
 </div>

@@ -2217,10 +2217,10 @@ vue@^3.2.6:
     "@vue/runtime-dom" "3.2.12"
     "@vue/shared" "3.2.12"
 
-vuetify@^3.0.0-beta.0:
-  version "3.0.0-beta.0"
-  resolved "https://registry.npmmirror.com/vuetify/-/vuetify-3.0.0-beta.0.tgz#68a13159e8290786736aa907b1038e0de4c87338"
-  integrity sha512-/xDoSTs1l/s9jkFwQ5uK9ok9py0TsImRENA7DrAJnsgx5cwH9yEvS3XJOUOsH3ra+VYt5xZP7Pfh8/HtBQaAlw==
+vuetify@^3.0.0-beta.2:
+  version "3.0.0-beta.2"
+  resolved "https://registry.npmmirror.com/vuetify/-/vuetify-3.0.0-beta.2.tgz#0dc25b653da1339654d7f015ed2074072210cc6b"
+  integrity sha512-mvrg8C+A8Gd3GRmtO1uidxJvd0KDTfN8vT4ARGRpXVteDHMYwbaVmGz/I4KY6gPASPkR1fVpvtz590h++2kuIA==
 
 vuex@^4.0.2:
   version "4.0.2"

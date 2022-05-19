@@ -1,6 +1,7 @@
 <template>
   <div
     class="day"
+    :class="{'day-lg': lgAndUp}"
     :style="{backgroundColor: color}"
     @click="showComment"
   >
@@ -9,6 +10,7 @@
       flat
       color="rgba(0, 0, 0, .87)"
       class="comment"
+      :class="{'comment-lg': lgAndUp}"
       :style="{
         [tail]: '-3px',
       }"
@@ -56,7 +58,7 @@ defineProps({
   color: { type: String, default: () => 'rgb(235, 237, 240)' },
 });
 
-const { width: displayWidth } = useDisplay();
+const { width: displayWidth, lgAndUp } = useDisplay();
 const tail = ref('left');
 
 function showComment(ev) {
@@ -70,6 +72,10 @@ function showComment(ev) {
   z-index: 2;
   bottom: 14px;
   overflow: visible;
+}
+
+.comment-lg {
+  bottom: 17px;
 }
 
 .content {
@@ -101,5 +107,10 @@ function showComment(ev) {
   border-radius: 2px;
   cursor: pointer;
   position: relative;
+}
+
+.day-lg {
+  width: 13px;
+  height: 13px;
 }
 </style>
