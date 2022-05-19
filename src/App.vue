@@ -35,4 +35,10 @@ html {
 .v-snackbar__content {
   padding: 8px 12px;
 }
+
+/* somehow overlay content max-height has been preseted as 360px */
+/* which is confusing */
+.v-dialog .v-overlay__content {
+  max-height: unset !important;
+}
 </style>
