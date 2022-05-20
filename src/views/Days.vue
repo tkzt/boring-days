@@ -125,6 +125,7 @@
       elevation="2"
       class="overflow-visible"
       width="max-content"
+      height="max-content"
       style="position: absolute; bottom: 0"
     >
       <v-list-item

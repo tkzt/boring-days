@@ -34,11 +34,7 @@
               >
                 {{ i.index }}: {{ i.value.toFixed(2) }}
               </div>
-              <v-divider
-                class="my-2"
-                color="white"
-              />
-              <div class="index-title">
+              <div class="index-title mt-1">
                 月：
               </div>
               <div
