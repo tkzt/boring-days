@@ -40,7 +40,7 @@
           </v-list-item>
           <v-list-item
             class="text-caption"
-            color="error"
+            style="color: #ff5252"
             @click="signOut"
           >
             Sign Out
@@ -84,6 +84,10 @@
           :theme="item"
           @reload-all="getThemes"
           @reload-current="refreshTheme"
+          @edit-day="day=>{
+            Object.assign(editingDay, {...day, theme: item.attributes.name});
+            recordDialog.model = true;
+          }"
         />
       </v-col>
     </template>
@@ -132,7 +136,7 @@
         class="text-caption"
         @click="recordDialog.model = true; plusMenu = false; avatarMenu = false;"
       >
-        记录本日
+        新记录
       </v-list-item>
       <v-list-item
         class="text-caption"
@@ -153,6 +157,7 @@
     :key="recordDialog.key"
     v-model="recordDialog.model"
     :themes="themes.map(t=>t.attributes.name)"
+    :editing="editingDay"
     @reload="reloadTheme"
   />
   <app-about-dialog
@@ -191,6 +196,7 @@ const plusMenu = ref(false);
 const loading = ref(false);
 const avatarRef = ref(null);
 const themes = ref([]);
+const editingDay = ref({});
 const dayInfo = reactive({
   date: '',
   day: '',
@@ -261,6 +267,7 @@ watch(() => recordDialog.model, (val) => {
   if (!val) {
     setTimeout(() => {
       recordDialog.key = new Date().getTime();
+      editingDay.value = {};
     }, 800);
   }
 });

@@ -19,8 +19,17 @@
       </v-btn>
 
       <!-- title -->
-      <v-card-title class="pb-0 pr-1">
-        记录本日
+      <v-card-title
+        class="pb-0 pr-1"
+      >
+        <template
+          v-if="!isEditing"
+        >
+          创建新纪录
+        </template>
+        <template v-else>
+          编辑记录
+        </template>
       </v-card-title>
 
       <!-- alert -->
@@ -59,13 +68,36 @@
           class="py-0"
           :class="{'mt-6': error.model || warning.model}"
         >
+          <v-text-field
+            v-if="isEditing"
+            v-model="form.theme"
+            variant="outlined"
+            density="comfortable"
+            label="主题*"
+            readonly
+          />
           <v-select
+            v-else
             v-model="form.theme"
             variant="outlined"
             density="comfortable"
             label="主题*"
             :items="themes"
             no-data-text="请先创建主题"
+          />
+        </v-col>
+
+        <!-- date -->
+        <v-col
+          cols="12"
+          class="py-0"
+        >
+          <v-text-field
+            v-model="form.date"
+            variant="outlined"
+            density="comfortable"
+            label="日期*"
+            readonly
           />
         </v-col>
 
@@ -151,12 +183,13 @@
 </template>
 <script setup>
 import {
-  reactive, ref, watch,
+  computed,
+  reactive, ref, watchEffect,
 } from 'vue';
 import { useDisplay } from 'vuetify';
 import { hasValue } from '@/utils/common';
 import notify from '@/utils/notification';
-
+import dayjs from 'dayjs';
 import { useStore } from 'vuex';
 import AV from 'leancloud-storage';
 
@@ -170,6 +203,10 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  editing: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 const emit = defineEmits(['update:modelValue', 'reload']);
 
@@ -177,6 +214,7 @@ const emit = defineEmits(['update:modelValue', 'reload']);
 const fieldLabelMap = {
   theme: '主题',
   value: '数值',
+  date: '日期',
 };
 
 // reactive
@@ -184,8 +222,10 @@ const { smAndDown } = useDisplay();
 const store = useStore();
 const valueFocused = ref(false);
 const submitting = ref(false);
+
 const form = reactive({
   theme: '',
+  date: '',
   value: '',
   comment: '',
 });
@@ -201,6 +241,8 @@ const warning = reactive({
   model: false,
   indication: '',
 });
+
+const isEditing = computed(() => JSON.stringify(props.editing) !== JSON.stringify({}));
 
 // funcs
 function resetValidation(field = 'all') {
@@ -245,7 +287,7 @@ async function createRecord() {
   record.set('theme', theme);
   record.set('comment', form.comment);
   record.set('value', form.value);
-  record.set('lastModifiedAt', new Date());
+  record.set('date', new Date(form.date));
   await record.save();
 }
 
@@ -253,7 +295,6 @@ async function updateRecord(id) {
   const record = AV.Object.createWithoutData('Record', id);
   record.set('value', form.value);
   record.set('comment', form.comment);
-  record.set('lastModifiedAt', new Date());
   await record.save();
 }
 
@@ -262,11 +303,10 @@ async function getExist() {
     const queryTheme = new AV.Query('Record');
     const queryDate = new AV.Query('Record');
     const [theme] = await getTheme();
-    const today = new Date();
     queryTheme.equalTo('theme', theme);
     queryDate.greaterThanOrEqualTo(
-      'lastModifiedAt',
-      new Date(`${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()} 00:00:00`),
+      'date',
+      new Date(dayjs(form.date).format('YYYY-MM-DD')),
     );
     const [result] = await AV.Query.and(queryTheme, queryDate).find();
     return result || {};
@@ -302,10 +342,16 @@ async function submit() {
 }
 
 // life circle
-watch(() => props.themes, (val) => {
-  if (val.length) {
-    [form.theme] = props.themes;
-  }
+watchEffect(() => {
+  const mixed = {};
+  Object.assign(mixed, {
+    theme: props.themes[0],
+    date: dayjs().format('YYYY-MM-DD'),
+    value: '',
+    comment: '',
+  });
+  Object.assign(mixed, props.editing);
+  Object.assign(form, mixed);
 });
 </script>
 <style scoped>
@@ -313,15 +359,15 @@ watch(() => props.themes, (val) => {
   width: 100%;
   outline: none;
   height: 48px;
-  color: #7a7a7a;
+  color: #434343;
 }
 
 .customized-input::placeholder{
-  color: #a3a3a3;
+  color: rgba(0, 0, 0, .87);
 }
 
 .bordered-col{
-  border: thin solid #c5c5c5;
+  border: thin solid #ababab;
   border-radius: 4px;
   box-sizing: border-box;
 }
@@ -340,7 +386,7 @@ watch(() => props.themes, (val) => {
 }
 
 .bordered-col:focus-within .label{
-  color: #666;
+  color: #434343;
 }
 
 .error-col,

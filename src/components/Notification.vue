@@ -25,6 +25,7 @@ import { useStore } from 'vuex';
 const store = useStore();
 const iconLevelMap = reactive({
   info: 'mdi-information',
+  warning: 'mdi-alert',
   success: 'mdi-check-circle',
   error: 'mdi-alert-circle',
 });

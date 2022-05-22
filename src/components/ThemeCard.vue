@@ -8,8 +8,8 @@
     flat
   >
     <div
-      class="d-flex mb-2 px-1 text-caption align-center"
-      style="width: 100%; height: 12px"
+      class="d-flex mb-2 text-caption align-center"
+      style="width: 100%; height: 12px; padding: 0 1.5px;"
     >
       <span
         style="font-weight: bold; position: relative"
@@ -59,7 +59,7 @@
       >
         <template #activator="{props: p}">
           <v-btn
-            size="xs"
+            size="sm"
             icon
             elevation="0"
             v-bind="p"
@@ -85,7 +85,7 @@
           </v-list-item>
           <v-list-item
             class="text-caption"
-            color="error"
+            style="color: #ff5252"
             @click="deleteDialog = true; rightClickMenu = false"
           >
             删除
@@ -94,23 +94,37 @@
       </v-menu>
     </div>
     <template
-      v-for="[key, value], idx in Object.entries(days).sort(([k1], [k2])=>k1>k2?1:-1)"
+      v-for="[date, day], idx in Object.entries(days).sort(([k1], [k2])=>k1>k2?1:-1)"
       :key="idx"
     >
       <day-card
-        v-if="value"
-        :date="key"
-        :value="value.value"
-        :comment="value.comment"
-        :color="calcColor(value.value)"
+        v-if="mdAndUp"
+        :day="{
+          ...day,
+          date,
+          color: calcColor(day.value)
+        }"
         :comment-show="comment===idx"
-        @click="comment = idx"
+        @mouseenter="comment = idx"
+        @mouseout="comment = -1"
+        @click="emit('editDay', {
+          ...day,
+          date,
+        })"
       />
       <day-card
         v-else
-        :date="key"
+        :day="{
+          ...day,
+          date,
+          color: calcColor(day.value)
+        }"
         :comment-show="comment===idx"
         @click="comment = idx"
+        @edit-day="emit('editDay', {
+          ...day,
+          date,
+        })"
       />
     </template>
     <v-card
@@ -148,10 +162,11 @@ import {
   onBeforeUnmount, onMounted, ref, computed, reactive, watch, nextTick,
 } from 'vue';
 import colorsJson from '@/assets/colors.json';
-import Dayjs from 'dayjs';
+import dayjs from 'dayjs';
 import AV from 'leancloud-storage';
 import notify from '@/utils/notification';
 import { useStore } from 'vuex';
+import { useDisplay } from 'vuetify';
 import DayCard from './DayCard.vue';
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
 import EditThemeDialog from './EditThemeDialog.vue';
@@ -164,9 +179,10 @@ const props = defineProps({
   },
 });
 
-const emit = defineEmits(['reloadAll', 'reloadCurrent']);
+const emit = defineEmits(['reloadAll', 'reloadCurrent', 'editDay']);
 
 // reactive
+const { mdAndUp } = useDisplay();
 const store = useStore();
 const theCard = ref(null);
 const padding = ref(0);
@@ -197,8 +213,8 @@ function onClickOutside(ev) {
 }
 
 function genDaysKeys(d = null) {
-  const firstDay = new Dayjs(new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
-  const day = d || new Dayjs().clone();
+  const firstDay = dayjs(new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
+  const day = d || dayjs().clone();
   const arr = [day.format('YYYY-MM-DD')];
   const next = day.add(-1, 'day');
   if (next < firstDay) {
@@ -215,13 +231,13 @@ async function getRecords() {
     const themeQuery = new AV.Query('Record');
     themeQuery.equalTo('theme', theme);
     const dateQueryStart = new AV.Query('Record');
-    dateQueryStart.greaterThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
+    dateQueryStart.greaterThanOrEqualTo('date', new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
     const dateQueryStop = new AV.Query('Record');
-    dateQueryStop.lessThanOrEqualTo('lastModifiedAt', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
+    dateQueryStop.lessThanOrEqualTo('date', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
     (
       await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()
     ).forEach((r) => {
-      const dateKey = new Dayjs(r.attributes.lastModifiedAt).format('YYYY-MM-DD');
+      const dateKey = dayjs(r.attributes.date).format('YYYY-MM-DD');
       days[dateKey] = {
         value: r.attributes.value,
         comment: r.attributes.comment,
@@ -241,12 +257,15 @@ function calcPadding() {
 }
 
 function calcColor(value) {
-  const delta = value - props.theme.attributes.low;
-  if (delta < unit.value) {
-    return colors.value[0];
+  if (value) {
+    const delta = value - props.theme.attributes.low;
+    if (delta < unit.value) {
+      return colors.value[0];
+    }
+    const targetIndex = Math.floor(delta / unit.value);
+    return colors.value[targetIndex < 4 ? targetIndex : 3];
   }
-  const targetIndex = Math.floor(delta / unit.value);
-  return colors.value[targetIndex < 4 ? targetIndex : 3];
+  return undefined;
 }
 
 function calcSum(values) {
@@ -293,11 +312,15 @@ function calcIndexes(idxes, values) {
   return result;
 }
 
+function checkDayBlank(day) {
+  return JSON.stringify(day) === JSON.stringify({});
+}
+
 function showIndexes() {
   // year
   const indexesResult = calcIndexes(
     props.theme.attributes.indexes || [],
-    Object.values(days).filter((v) => !!v).map((v) => v.value),
+    Object.values(days).filter((v) => !checkDayBlank(v)).map((v) => v.value),
   );
 
   // month
@@ -305,7 +328,7 @@ function showIndexes() {
     props.theme.attributes.indexes || [],
     Object
       .entries(days)
-      .filter(([k, v]) => !!v && new Date(k).getMonth() === new Date().getMonth())
+      .filter(([k, v]) => !checkDayBlank(v) && new Date(k).getMonth() === new Date().getMonth())
       .map(([, v]) => v.value),
   );
   if (indexesResult.length > 0) {
@@ -330,7 +353,7 @@ watch(loading, (val) => {
 onMounted(() => {
   calcPadding();
   unit.value = (props.theme.attributes.high - props.theme.attributes.low) / 4;
-  genDaysKeys().forEach((k) => { days[k] = null; });
+  genDaysKeys().forEach((k) => { days[k] = {}; });
   getRecords();
 
   window.addEventListener('resize', calcPadding);

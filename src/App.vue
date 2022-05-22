@@ -36,9 +36,24 @@ html {
   padding: 8px 12px;
 }
 
-/* somehow overlay content max-height has been preseted as 360px */
-/* which is confusing */
+/* somehow overlay content max-height has been preseted as 360px
+which is confusing */
 .v-dialog .v-overlay__content {
   max-height: unset !important;
+}
+
+/* temporarily fix another vuetify-beta bug */
+div.v-overlay.v-overlay--absolute.v-overlay--active.v-menu {
+  z-index: 99999 !important;
+}
+
+/* also, text in plain textfield is not center aligned in vertical
+due to asymmetrical padding */
+.v-text-field .v-field__field {
+  padding: 9px 0;
+}
+
+.v-select .v-field__field{
+  padding: 12px 6px;
 }
 </style>

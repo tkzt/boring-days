@@ -1,8 +1,8 @@
 <template>
   <div
     class="day"
-    :class="{'day-lg': lgAndUp}"
-    :style="{backgroundColor: color}"
+    :class="{'day-lg': mdAndUp}"
+    :style="{backgroundColor: day.color||'rgb(235, 237, 240)'}"
     @click="showComment"
   >
     <v-card
@@ -10,7 +10,7 @@
       flat
       color="rgba(0, 0, 0, .87)"
       class="comment"
-      :class="{'comment-lg': lgAndUp}"
+      :class="{'comment-lg': mdAndUp}"
       :style="{
         [tail]: '-3px',
       }"
@@ -19,23 +19,26 @@
       <div
         class="px-1 text-caption content"
       >
-        <strong>
-          <template v-if="value">
-            {{ date }}, {{ value }}
-          </template>
-          <template v-else>
-            {{ date }}
-          </template>
+        <strong class="d-flex">
+          {{ day.date+(day.value?`, ${day.value}`:'') }}
+          <v-spacer />
+          <v-btn
+            size="sm"
+            icon
+            color="transparent"
+            elevation="0"
+            @click="emit('editDay')"
+          >
+            <v-icon
+              size="10"
+              class="ma-0"
+            >mdi-circle-edit-outline</v-icon>
+          </v-btn>
         </strong>
-        <br>
         -
-        <br>
-        <template v-if="comment">
-          {{ comment }}
-        </template>
-        <template v-else>
-          不过是无聊的又一天罢了..
-        </template>
+        <div>
+          {{ day.comment||'不过是无聊的又一天罢了..' }}
+        </div>
       </div>
       <div
         class="tail"
@@ -51,14 +54,16 @@ import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 
 defineProps({
-  value: { type: [String, Number], default: () => '' },
-  comment: { type: String, default: () => '' },
-  date: { type: String, default: () => '' },
   commentShow: { type: Boolean, default: () => false },
-  color: { type: String, default: () => 'rgb(235, 237, 240)' },
+  day: {
+    type: Object,
+    default: () => ({}),
+  },
 });
 
-const { width: displayWidth, lgAndUp } = useDisplay();
+const emit = defineEmits(['editDay']);
+
+const { width: displayWidth, mdAndUp } = useDisplay();
 const tail = ref('left');
 
 function showComment(ev) {

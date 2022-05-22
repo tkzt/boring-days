@@ -381,15 +381,15 @@ async function submit() {
   width: 100%;
   outline: none;
   height: 48px;
-  color: #7a7a7a;
+  color: #434343;
 }
 
 .customized-input::placeholder{
-  color: #a3a3a3;
+  color: rgba(0, 0, 0, .87);
 }
 
 .bordered-col{
-  border: thin solid #c5c5c5;
+  border: thin solid #ababab;
   border-radius: 4px;
   box-sizing: border-box;
 }
@@ -408,7 +408,7 @@ async function submit() {
 }
 
 .bordered-col:focus-within .label{
-  color: #666;
+  color: #434343;
 }
 
 .error-col,
