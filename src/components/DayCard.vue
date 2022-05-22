@@ -21,19 +21,21 @@
       >
         <strong class="d-flex">
           {{ day.date+(day.value?`, ${day.value}`:'') }}
-          <v-spacer />
-          <v-btn
-            size="sm"
-            icon
-            color="transparent"
-            elevation="0"
-            @click="emit('editDay')"
-          >
-            <v-icon
-              size="10"
-              class="ma-0"
-            >mdi-circle-edit-outline</v-icon>
-          </v-btn>
+          <template v-if="!mdAndUp">
+            <v-spacer />
+            <v-btn
+              size="sm"
+              icon
+              color="transparent"
+              elevation="0"
+              @click="emit('editDay')"
+            >
+              <v-icon
+                size="10"
+                class="ma-0"
+              >mdi-circle-edit-outline</v-icon>
+            </v-btn>
+          </template>
         </strong>
         -
         <div>
