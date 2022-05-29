@@ -273,8 +273,7 @@ function calcSum(values) {
 }
 
 function calcAverage(values) {
-  const aver = calcSum(values) / values.length;
-  return (aver % 1 === 0) ? aver : aver.toFixed(2);
+  return calcSum(values) / values.length;
 }
 
 function calcMinMax(values) {
