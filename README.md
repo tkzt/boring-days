@@ -1,3 +1,12 @@
+<p align="center">
+    <img width="180" src="https://tkzt.cn/boring-days/logo.svg" alt="Boring Days logo" />
+</p>
+<p align="center">
+  <a href="https://github.com/boring-plans/boring-days/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/boring-plans/boring-days?color=blue"></a>
+  <a href="https://github.com/boring-plans/boring-days/actions/workflows/cd.yml?query=branch%3Amain"><img src="https://img.shields.io/github/workflow/status/boring-plans/boring-days/cd/main" alt="build status"></a>
+</p>
+
+
 # Boring Days
 
 今天（2022-05-03）也是等待 Vuetify 3 和 上海 Release 的一天。
