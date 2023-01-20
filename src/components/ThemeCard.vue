@@ -177,6 +177,10 @@ const props = defineProps({
     type: Object,
     default: () => null,
   },
+  year: {
+    type: String,
+    default: () => new Date().getFullYear(),
+  },
 });
 
 const emit = defineEmits(['reloadAll', 'reloadCurrent', 'editDay']);
@@ -213,7 +217,7 @@ function onClickOutside(ev) {
 }
 
 function genDaysKeys(d = null) {
-  const firstDay = dayjs(new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
+  const firstDay = dayjs(new Date(`${props.year}-01-01 00:00:00`));
   const day = d || dayjs().clone();
   const arr = [day.format('YYYY-MM-DD')];
   const next = day.add(-1, 'day');
@@ -231,9 +235,9 @@ async function getRecords() {
     const themeQuery = new AV.Query('Record');
     themeQuery.equalTo('theme', theme);
     const dateQueryStart = new AV.Query('Record');
-    dateQueryStart.greaterThanOrEqualTo('date', new Date(`${new Date().getFullYear()}-01-01 00:00:00`));
+    dateQueryStart.greaterThanOrEqualTo('date', new Date(`${props.year}-01-01 00:00:00`));
     const dateQueryStop = new AV.Query('Record');
-    dateQueryStop.lessThanOrEqualTo('date', new Date(`${new Date().getFullYear()}-12-31 23:59:59`));
+    dateQueryStop.lessThanOrEqualTo('date', new Date(`${props.year}-12-31 23:59:59`));
     (
       await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()
     ).forEach((r) => {

@@ -48,11 +48,32 @@
         </v-list>
       </v-menu>
       <v-spacer />
-      <div class="text-caption d-flex flex-wrap justify-end">
+      <v-radio-group
+        v-model="currYear"
+        inline
+        hide-details
+        style="height:28px;"
+        class="text-center"
+      >
+        <v-radio
+          label="2022"
+          :value="2022"
+          density="compact"
+          color="primary"
+        />
+        <v-radio
+          label="2023"
+          :value="2023"
+          density="compact"
+          color="primary"
+        />
+      </v-radio-group>
+      <v-spacer />
+      <div class="text-caption d-flex flex-wrap flex-column">
         <div>{{ dayInfo.date }}</div>
         <div
           class="text-h6 d-flex justify-end align-center"
-          style="width: 100%; height: 26px"
+          style="height: 26px"
         >
           {{ dayInfo.day }}
         </div>
@@ -82,6 +103,7 @@
         <ThemeCard
           :key="themeKeys[item.attributes.name]"
           :theme="item"
+          :year="currYear"
           @reload-all="getThemes"
           @reload-current="refreshTheme"
           @edit-day="day=>{
@@ -196,6 +218,7 @@ const plusMenu = ref(false);
 const loading = ref(false);
 const avatarRef = ref(null);
 const themes = ref([]);
+const currYear = ref(new Date().getFullYear());
 const editingDay = ref({});
 const dayInfo = reactive({
   date: '',
@@ -278,6 +301,10 @@ watch(() => aboutDialog.model, (val) => {
       aboutDialog.key = new Date().getTime();
     }, 800);
   }
+});
+
+watch(currYear, () => {
+  getThemes();
 });
 
 onMounted(() => {
