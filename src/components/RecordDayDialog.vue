@@ -304,7 +304,7 @@ async function getExist() {
     const queryDate = new AV.Query('Record');
     const [theme] = await getTheme();
     queryTheme.equalTo('theme', theme);
-    queryDate.greaterThanOrEqualTo(
+    queryDate.equalTo(
       'date',
       new Date(dayjs(form.date).format('YYYY-MM-DD')),
     );

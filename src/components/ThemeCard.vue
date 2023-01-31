@@ -218,7 +218,7 @@ function onClickOutside(ev) {
 
 function genDaysKeys(d = null) {
   const firstDay = dayjs(new Date(`${props.year}-01-01 00:00:00`));
-  const day = d || dayjs().clone();
+  const day = d || (props.year === dayjs().year() ? dayjs().clone() : dayjs(`${props.year}-12-31`));
   const arr = [day.format('YYYY-MM-DD')];
   const next = day.add(-1, 'day');
   if (next < firstDay) {

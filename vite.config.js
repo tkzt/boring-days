@@ -28,5 +28,5 @@ export default defineConfig({
     ]
   },
   */
-  base: '/boring-days',
+  base: '/boring-days/',
 });

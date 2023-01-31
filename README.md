@@ -1,13 +1,7 @@
 <p align="center">
-    <img width="180" src="https://tkzt.cn/boring-days/logo.svg" alt="Boring Days logo" />
+    <img width="180" src="https://raw.githubusercontent.com/boring-plans/boring-days/f730db4ca2bf6633442058b12eb75615bc5e4dd2/public/logo.svg" alt="Boring Days logo"  align="right"/>
+    <h1>Boring Days</h1>
 </p>
-<p align="center">
-  <a href="https://github.com/boring-plans/boring-days/blob/main/LICENSE"><img alt="GitHub License" src="https://img.shields.io/github/license/boring-plans/boring-days?color=blue"></a>
-  <a href="https://github.com/boring-plans/boring-days/actions/workflows/cd.yml?query=branch%3Amain"><img src="https://img.shields.io/github/workflow/status/boring-plans/boring-days/cd/main" alt="build status"></a>
-</p>
-
-
-# Boring Days
 
 今天（2022-05-03）也是等待 Vuetify 3 和 上海 Release 的一天。
 
@@ -62,7 +56,7 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 <img src="doc-assets/791651594341_.pic.jpg" width="30%"/>
 </div>
 
-## Note That
+## Caveats
 
 - Boring Days 的数据存储全权交给 Lean Cloud
 - 显然，App ID 和 App Key 并非友好可读，所以建议勾选记住我

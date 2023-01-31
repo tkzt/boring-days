@@ -56,14 +56,10 @@
         class="text-center"
       >
         <v-radio
-          label="2022"
-          :value="2022"
-          density="compact"
-          color="primary"
-        />
-        <v-radio
-          label="2023"
-          :value="2023"
+          v-for="year, index in years"
+          :key="index"
+          :label="year"
+          :value="year"
           density="compact"
           color="primary"
         />
@@ -210,6 +206,8 @@ const dayOfWeekMap = {
   Sat: '星期六',
   Sun: '星期日',
 };
+const years = new Array(new Date().getFullYear() - 2022 + 1)
+  .fill().map((_, index) => index + 2022); // Boring Days was created in 2022
 
 const router = useRouter();
 const store = useStore();
@@ -260,7 +258,7 @@ async function getThemes() {
       themeKeys[t.attributes.name] = new Date().getTime();
     });
   } catch {
-    // initially, Theme Object doesn't exist
+    // initially, theme Object doesn't exist
   }
 
   loading.value = false;
