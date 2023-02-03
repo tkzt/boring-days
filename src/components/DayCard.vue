@@ -1,54 +1,61 @@
 <template>
   <div
-    class="day"
+    class="day d-flex align-center justify-center"
     :class="{'day-lg': mdAndUp}"
     :style="{backgroundColor: day.color||'rgb(235, 237, 240)'}"
-    @click="showComment"
+    @click="!mdAndUp&&showComment()"
+    @mouseenter="mdAndUp&&showComment()"
+    @mouseleave="mdAndUp&&(commentShow = false)"
   >
-    <v-card
-      v-if="commentShow"
-      flat
-      color="rgba(0, 0, 0, .87)"
-      class="comment"
-      :class="{'comment-lg': mdAndUp}"
-      :style="{
-        [tail]: '-3px',
+    <div
+      v-click-outside="{
+        handler: ()=>(commentShow = false),
+        closeConditional: ()=>commentShow
       }"
-      @click.stop
+      style="width: 100%; height: 100%; pointer-events: none;"
     >
-      <div
-        class="px-1 text-caption content"
+      <v-tooltip
+        v-model="commentShow"
+        location="top"
+        activator="parent"
       >
-        <strong class="d-flex">
-          {{ day.date+(day.value?`, ${day.value}`:'') }}
-          <template v-if="!mdAndUp">
-            <v-spacer />
-            <v-btn
-              size="sm"
-              icon
-              color="transparent"
-              elevation="0"
-              @click="emit('editDay')"
+        <div
+          class="text-caption"
+        >
+          <div class="d-flex align-center">
+            <div style="height: 12px">
+              {{ day.date }}
+            </div>
+            <div
+              v-if="!mdAndUp"
+              style="height: 13px"
             >
-              <v-icon
-                size="10"
-                class="ma-0"
-              >mdi-circle-edit-outline</v-icon>
-            </v-btn>
-          </template>
-        </strong>
-        -
-        <div>
-          {{ day.comment||'不过是无聊的又一天罢了..' }}
+              <v-spacer />
+              <v-btn
+                size="12"
+                icon
+                color="transparent"
+                style="pointer-events: initial"
+                variant="flat"
+                class="ml-2"
+                @click.stop="emit('editDay')"
+              >
+                <v-icon size="12">
+                  mdi-circle-edit-outline
+                </v-icon>
+              </v-btn>
+            </div>
+          </div>
+          <v-divider class="mt-4 mb-1" />
+          <div>
+            <template v-if="day.value">
+              <strong>{{ day.value }}</strong>,
+            </template>
+            {{ (day.comment||'不过是无聊的一天罢了 : )') }}
+          </div>
         </div>
-      </div>
-      <div
-        class="tail"
-        :style="{
-          [tail]: '5px',
-        }"
-      />
-    </v-card>
+      </v-tooltip>
+    </div>
   </div>
 </template>
 <script setup>
@@ -56,7 +63,6 @@ import { ref } from 'vue';
 import { useDisplay } from 'vuetify';
 
 defineProps({
-  commentShow: { type: Boolean, default: () => false },
   day: {
     type: Object,
     default: () => ({}),
@@ -65,48 +71,14 @@ defineProps({
 
 const emit = defineEmits(['editDay']);
 
-const { width: displayWidth, mdAndUp } = useDisplay();
-const tail = ref('left');
+const { mdAndUp } = useDisplay();
+const commentShow = ref(false);
 
-function showComment(ev) {
-  tail.value = ev.x > displayWidth.value / 2 ? 'right' : 'left';
+function showComment() {
+  commentShow.value = true;
 }
 </script>
 <style scoped>
-.comment {
-  position: absolute;
-  color: white;
-  z-index: 2;
-  bottom: 14px;
-  overflow: visible;
-}
-
-.comment-lg {
-  bottom: 17px;
-}
-
-.content {
-  max-width: 160px;
-  max-height: 125px;
-  width: max-content;
-  word-wrap: break-word;
-  word-break: break-all;
-  user-select: none;
-  line-height: 12px;
-  padding: 4px 8px;
-  overflow-y: auto;
-}
-
-.tail {
-  width: 0;
-  height: 0;
-  border: 3px solid transparent;
-  border-top-color: rgba(0, 0, 0, .87);
-  border-bottom: 0;
-  position: absolute;
-  bottom: -3px;
-}
-
 .day {
   width: 10px;
   height: 10px;

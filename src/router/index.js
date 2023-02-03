@@ -6,11 +6,11 @@ import { initAV } from '../utils/leancloud';
 const routes = [
   {
     path: '/',
-    component: () => import('@/views/Days.vue'),
+    component: () => import('@/views/DaysView.vue'),
   },
   {
     path: '/sign-in',
-    component: () => import('@/views/SignIn.vue'),
+    component: () => import('@/views/SignInView.vue'),
   },
 ];
 

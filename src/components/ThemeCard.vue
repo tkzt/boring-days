@@ -1,57 +1,73 @@
 <template>
   <v-card
-    ref="theCard"
-    color="white"
+    ref="theCardRef"
     class="d-flex flex-wrap overflow-visible"
-    style="position: relative"
+    style="position: relative;"
     :style="{padding: padding+'px'}"
     flat
+    rounded="lg"
   >
     <div
       class="d-flex mb-2 text-caption align-center"
-      style="width: 100%; height: 12px; padding: 0 1.5px;"
+      style="width: 100%; height: 12px;"
     >
-      <span
-        style="font-weight: bold; position: relative"
-        class="theme-name"
-        @click="showIndexes"
+      <div
+        style="font-weight: bold; cursor: pointer;"
+        @mouseenter="mdAndUp && showIndexes()"
+        @mouseleave="mdAndUp && (indexes.show = false)"
+        @click="!mdAndUp && showIndexes()"
       >
-        {{ theme?theme.attributes.name:'' }}
-        <v-card
-          v-if="indexes.show"
-          flat
-          color="rgba(0, 0, 0, .87)"
-          class="indexes text-caption"
+        {{ props.theme?.attributes.name||'' }}
+      </div>
+      <div
+        v-click-outside="{
+          handler: ()=>(indexes.show = false),
+          closeConditional: ()=>indexes.show
+        }"
+      >
+        <v-tooltip
+          v-model="indexes.show"
+          location="end top"
+          activator="parent"
+          :offset="[5, 5]"
         >
-          <div class="indexes-content">
-            <template v-if="indexes.result">
-              <div class="index-title">
-                年：
+          <div
+            class="text-caption"
+          >
+            <template v-if="indexes.result?.length">
+              <div class="d-flex align-center">
+                <v-divider class="ma-1 ml-0" />
+                年
+                <v-divider class="ma-1 mr-0" />
               </div>
               <div
                 v-for="i,idx in indexes.result"
                 :key="idx"
+                class="d-flex"
               >
-                {{ i.index }}: {{ i.value.toFixed(2) }}
+                {{ i.index }}<v-spacer /><strong class="ml-2">{{ i.value.toFixed(2) }}</strong>
               </div>
-              <div class="index-title mt-1">
-                月：
-              </div>
-              <div
-                v-for="i,idx in indexes.monthResult"
-                :key="idx"
-              >
-                {{ i.index }}: {{ i.value.toFixed(2) }}
-              </div>
+              <template v-if="indexes.monthResult?.length">
+                <div class="d-flex align-center">
+                  <v-divider class="ma-1 ml-0" />
+                  月
+                  <v-divider class="ma-1 mr-0" />
+                </div>
+                <div
+                  v-for="i,idx in indexes.monthResult"
+                  :key="idx"
+                  class="d-flex"
+                >
+                  {{ i.index }}<v-spacer /><strong class="ml-2">{{ i.value.toFixed(2) }}</strong>
+                </div>
+              </template>
             </template>
             <template v-else>
               无统计指标或无数据~
             </template>
           </div>
-
-          <div class="tail" />
-        </v-card>
-      </span>
+        </v-tooltip>
+      </div>
       <v-spacer />
       <v-menu
         v-model="rightClickMenu"
@@ -59,14 +75,12 @@
       >
         <template #activator="{props: p}">
           <v-btn
-            size="sm"
+            size="24"
             icon
-            elevation="0"
             v-bind="p"
-            class="ml-2"
+            flat
           >
             <v-icon
-              size="sm"
               style="cursor: pointer"
             >
               mdi-dots-horizontal
@@ -75,18 +89,16 @@
         </template>
         <v-list
           density="compact"
-          elevation="1"
         >
           <v-list-item
             class="text-caption"
-            @click="editDialog = true; rightClickMenu = false"
+            @click="editDialog = true;"
           >
             编辑
           </v-list-item>
           <v-list-item
-            class="text-caption"
-            style="color: #ff5252"
-            @click="deleteDialog = true; rightClickMenu = false"
+            class="text-caption text-error"
+            @click="deleteDialog = true;"
           >
             删除
           </v-list-item>
@@ -104,9 +116,6 @@
           date,
           color: calcColor(day.value)
         }"
-        :comment-show="comment===idx"
-        @mouseenter="comment = idx"
-        @mouseout="comment = -1"
         @click="emit('editDay', {
           ...day,
           date,
@@ -119,24 +128,17 @@
           date,
           color: calcColor(day.value)
         }"
-        :comment-show="comment===idx"
-        @click="comment = idx"
         @edit-day="emit('editDay', {
           ...day,
           date,
         })"
       />
     </template>
-    <v-card
-      v-if="loading"
-      flat
-      absolute
-      top="0"
-      left="0"
-      style="opacity: .62"
-      width="100%"
-      :height="loadingHeight"
+    <v-overlay
+      :model-value="loading"
+      contained
       class="d-flex align-center justify-center"
+      :scrim="theme.global.current.value.dark?'rgba(255, 255, 255, .17)':'rgba(0, 0, 0, .37)'"
     >
       <v-progress-circular
         indeterminate
@@ -144,29 +146,29 @@
         size="small"
         width="2"
       />
-    </v-card>
+    </v-overlay>
   </v-card>
   <delete-confirm-dialog
     v-model="deleteDialog"
-    :theme="theme"
+    :theme="props.theme"
     @reload="emit('reloadAll')"
   />
   <edit-theme-dialog
     v-model="editDialog"
-    :theme="theme"
-    @reload="emit('reloadCurrent', theme.id)"
+    :theme="props.theme"
+    @reload="emit('reloadCurrent', props.theme.id)"
   />
 </template>
 <script setup>
 import {
-  onBeforeUnmount, onMounted, ref, computed, reactive, watch, nextTick,
+  onMounted, ref, computed, reactive, watch, nextTick,
 } from 'vue';
 import colorsJson from '@/assets/colors.json';
 import dayjs from 'dayjs';
 import AV from 'leancloud-storage';
 import notify from '@/utils/notification';
 import { useStore } from 'vuex';
-import { useDisplay } from 'vuetify';
+import { useDisplay, useTheme } from 'vuetify';
 import DayCard from './DayCard.vue';
 import DeleteConfirmDialog from './DeleteConfirmDialog.vue';
 import EditThemeDialog from './EditThemeDialog.vue';
@@ -178,7 +180,7 @@ const props = defineProps({
     default: () => null,
   },
   year: {
-    type: String,
+    type: Number,
     default: () => new Date().getFullYear(),
   },
 });
@@ -188,9 +190,9 @@ const emit = defineEmits(['reloadAll', 'reloadCurrent', 'editDay']);
 // reactive
 const { mdAndUp } = useDisplay();
 const store = useStore();
-const theCard = ref(null);
+const theme = useTheme();
+const theCardRef = ref(null);
 const padding = ref(0);
-const comment = ref(-1);
 const unit = ref(0);
 const loading = ref(false);
 const loadingHeight = ref(0);
@@ -205,17 +207,6 @@ const colors = computed(
 );
 
 // funcs
-function onClickOutside(ev) {
-  const { target } = ev;
-  if (target) {
-    if (!theCard.value.$el.contains(target) || (!target.classList.contains('day') && !target.classList.contains('theme-name'))) {
-      comment.value = -1;
-      indexes.show = false;
-      rightClickMenu.value = false;
-    }
-  }
-}
-
 function genDaysKeys(d = null) {
   const firstDay = dayjs(new Date(`${props.year}-01-01 00:00:00`));
   const day = d || (props.year === dayjs().year() ? dayjs().clone() : dayjs(`${props.year}-12-31`));
@@ -231,9 +222,9 @@ async function getRecords() {
   loading.value = true;
 
   try {
-    const theme = AV.Object.createWithoutData('Theme', props.theme.id);
+    const targetTheme = AV.Object.createWithoutData('Theme', props.theme.id);
     const themeQuery = new AV.Query('Record');
-    themeQuery.equalTo('theme', theme);
+    themeQuery.equalTo('theme', targetTheme);
     const dateQueryStart = new AV.Query('Record');
     dateQueryStart.greaterThanOrEqualTo('date', new Date(`${props.year}-01-01 00:00:00`));
     const dateQueryStop = new AV.Query('Record');
@@ -257,7 +248,7 @@ async function getRecords() {
 }
 
 function calcPadding() {
-  padding.value = (theCard.value.$el.offsetWidth % 13) / 2 + 6.5;
+  padding.value = (theCardRef.value.$el.offsetWidth % (mdAndUp ? 16 : 13)) / 2 + 6.5;
 }
 
 function calcColor(value) {
@@ -326,29 +317,34 @@ function showIndexes() {
     Object.values(days).filter((v) => !checkDayBlank(v)).map((v) => v.value),
   );
 
-  // month
-  const monthIndexesResult = calcIndexes(
-    props.theme.attributes.indexes || [],
-    Object
-      .entries(days)
-      .filter(([k, v]) => !checkDayBlank(v) && new Date(k).getMonth() === new Date().getMonth())
-      .map(([, v]) => v.value),
-  );
   if (indexesResult.length > 0) {
     indexes.result = indexesResult;
-    indexes.monthResult = monthIndexesResult;
+
+    if (props.year === new Date().getFullYear()) {
+      // month
+      const monthIndexesResult = calcIndexes(
+        props.theme.attributes.indexes || [],
+        Object
+          .entries(days)
+          .filter(([k, v]) => !checkDayBlank(v) && new Date(k).getMonth() === new Date().getMonth())
+          .map(([, v]) => v.value),
+      );
+      indexes.monthResult = monthIndexesResult;
+    } else {
+      indexes.monthResult = [];
+    }
   } else {
-    indexes.result = null;
-    indexes.monthResult = null;
+    indexes.result = [];
+    indexes.monthResult = [];
   }
+
   indexes.show = true;
 }
 
-// life circle
 watch(loading, (val) => {
   if (val) {
     nextTick(() => {
-      loadingHeight.value = theCard.value.$el.clientHeight;
+      loadingHeight.value = theCardRef.value.$el.clientHeight;
     });
   }
 });
@@ -358,55 +354,5 @@ onMounted(() => {
   unit.value = (props.theme.attributes.high - props.theme.attributes.low) / 4;
   genDaysKeys().forEach((k) => { days[k] = {}; });
   getRecords();
-
-  window.addEventListener('resize', calcPadding);
-  window.addEventListener('click', onClickOutside);
-});
-
-onBeforeUnmount(() => {
-  window.removeEventListener('resize', calcPadding);
-  window.removeEventListener('click', onClickOutside);
 });
 </script>
-<style scoped>
-.indexes{
-  position: absolute;
-  left: calc(100% + 3px);
-  top: 0;
-  color: white;
-  z-index: 2;
-  overflow: visible;
-}
-
-.indexes-content {
-  width: max-content;
-  word-wrap: break-word;
-  word-break: break-all;
-  max-width: 160px;
-  max-height: 160px;
-  padding: 4px 8px;
-  user-select: none;
-  line-height: 12px;
-  overflow-y: auto;
-}
-
-.tail {
-  width: 0;
-  height: 0;
-  border: 3px solid transparent;
-  border-right-color: rgba(0, 0, 0, .87);
-  border-left: 0;
-  position: absolute;
-  left: -3px;
-  top: 5px;
-}
-
-.theme-name {
-  cursor: pointer;
-}
-
-.index-title{
-  font-weight: bold;
-  margin-bottom: 3px;
-}
-</style>

@@ -3,6 +3,23 @@
     <h1>Boring Days</h1>
 </p>
 
+节后第一周（2023/1/30-2023/2/3）比较闲，想起年前看到 Vuetify 3 正式发布了，于是将这个小工具翻新了一波。
+
+主要变化：
+
+- Vuetify 3 从 Beta 升级到正式（去掉诸多对 Beta 版的粗糙补救）
+- 记录数据时，回车进行求和
+- 优化布局、对话框们
+- 深色主题
+
+它现在的样子：
+
+![boring-days_v2.0.gif](doc-assets/boring-days_v2.0.gif)
+
+_以下是之前的介绍。_
+
+---
+
 今天（2022-05-03）也是等待 Vuetify 3 和 上海 Release 的一天。
 
 ## Preface
@@ -60,5 +77,5 @@ APP 托管在[这里](https://https://boring-plans.github.io/boring-days)。
 
 - Boring Days 的数据存储全权交给 Lean Cloud
 - 显然，App ID 和 App Key 并非友好可读，所以建议勾选记住我
-- 由于时间与地域的关系，如需补充本日以前的数据，只能通过 Lean Cloud 应用控制台操作
-- 实践表明，Vuetify 3-Beta 在 Chromium 内核下表现良好，其余恐鸡飞狗跳
+- ~~由于时间与地域的关系，如需补充本日以前的数据，只能通过 Lean Cloud 应用控制台操作~~
+- ~~实践表明，Vuetify 3-Beta 在 Chromium 内核下表现良好，其余恐鸡飞狗跳~~

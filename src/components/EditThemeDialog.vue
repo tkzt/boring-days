@@ -3,224 +3,216 @@
     :model-value="value"
     :fullscreen="smAndDown"
   >
-    <v-card color="white">
-      <!-- close button -->
-      <v-btn
-        icon
-        elevation="0"
-        size="small"
-        class="ma-1"
-        style="position: absolute; right: 0; top: 0"
-        @click="emit('update:modelValue', false)"
+    <v-card
+      flat
+      class="d-flex justify-center align-center"
+      :color="smAndDown?'':'transparent'"
+      elevation="0"
+    >
+      <v-col
+        class="pa-0"
+        cols="12"
+        md="8"
+        lg="4"
+        xl="3"
       >
-        <v-icon>mdi-close</v-icon>
-      </v-btn>
-
-      <!-- title -->
-      <v-card-title class="pb-0 pr-1">
-        编辑主题
-      </v-card-title>
-      <v-card-text :class="{'mt-3': smAndDown}">
-        <!-- alert -->
-        <v-col
-          cols="12"
-          class="py-0"
+        <v-card
+          class="pa-2"
+          rounded="lg"
+          :flat="smAndDown"
         >
-          <v-alert
-            v-model="error.model"
-            type="error"
-            variant="contained-text"
-            closable
-          >
-            {{ error.indication }}
-          </v-alert>
-        </v-col>
-        <v-col
-          cols="12"
-          class="py-0"
-          :class="{'mt-4': error.model}"
-        >
-          <v-alert
-            v-model="warning.model"
-            type="warning"
-            variant="contained-text"
-            closable
-          >
-            {{ warning.indication }}
-          </v-alert>
-        </v-col>
-
-        <!-- name -->
-        <v-col
-          cols="12"
-          class="py-0"
-          :class="{'mt-6': error.model || warning.model}"
-        >
-          <v-text-field
-            v-model="form.name"
-            variant="outlined"
-            density="comfortable"
-            label="名称*"
-            :error-messages="errorMessages.name"
-            @blur="validate('name')"
-            @input="resetValidation('name')"
-          />
-        </v-col>
-
-        <!-- theme color -->
-        <v-col
-          cols="12"
-          class="py-0 d-flex align-center justify-space-between"
-          style="margin-bottom: 38px"
-        >
-          <div
-            style="color: #a3a3a3; font-size: 12px"
-            class="flex-shrink-0 pr-3 flex-grow-0"
-          >
-            主题色:
-          </div>
-          <div class="d-flex align-center flex-wrap">
-            <div
-              v-for="item, index in colors"
-              :key="index"
-              class="rect d-flex align-center justify-center"
-              :style="{
-                backgroundColor: item.color,
-                marginRight: index<colors.length-1?'5px':''
-              }"
-              @click="form.color = item.value"
-            >
-              <v-icon
-                v-if="form.color===item.value"
-                size="12"
-                color="white"
-                class="flex-grow-0"
-              >
-                mdi-check
-              </v-icon>
-            </div>
-          </div>
-        </v-col>
-
-        <!-- low and high -->
-        <v-col
-          cols="12"
-          class="py-0 d-flex align-center justify-space-between"
-          style="margin-bottom: 38px"
-        >
-          <v-col
-            cols="5"
-            style="position: relative"
-            class="pa-0 d-flex bordered-col"
-            :class="{'error-col': errorMessages.low.length>0}"
-          >
-            <label
-              class="label"
-              :class="{'label-rise-up': lowFocused || hasValue(form.low)}"
-            >
-              低值*
-            </label>
-            <div
-              class="overflow-hidden flex-grow-1"
-              style="padding: 0 16px"
-            >
-              <input
-                v-model="form.low"
-                step="0.01"
-                class="customized-input"
-                type="number"
-                @focus="lowFocused = true"
-                @blur="lowFocused = false; validate('low')"
-                @input="resetValidation('low')"
-              >
-            </div>
-            <div
-              v-if="!!errorMessages.low"
-              class="error-message"
-            >
-              {{ errorMessages.low }}
-            </div>
-          </v-col>
-          <v-icon
-            size="15"
-            class="mx-4"
-          >
-            mdi-arrow-right
-          </v-icon>
-          <v-col
-            cols="5"
-            style="position: relative"
-            class="pa-0 d-flex bordered-col"
-            :class="{'error-col': errorMessages.high.length>0}"
-          >
-            <label
-              class="label"
-              :class="{'label-rise-up': highFocused || hasValue(form.high)}"
-            >
-              高值*
-            </label>
-            <div
-              class="overflow-hidden flex-grow-1"
-              style="padding: 0 16px"
-            >
-              <input
-                v-model="form.high"
-                step="0.01"
-                class="customized-input"
-                type="number"
-                @focus="highFocused = true"
-                @blur="highFocused = false; validate('high')"
-                @input="resetValidation('high')"
-              >
-            </div>
-            <div
-              v-if="!!errorMessages.high"
-              class="error-message"
-            >
-              {{ errorMessages.high }}
-            </div>
-          </v-col>
-        </v-col>
-
-        <!-- indexes -->
-        <v-col
-          cols="12"
-          class="py-0"
-          :class="{'mt-6': error.model || warning.model}"
-        >
-          <v-select
-            v-model="form.indexes"
-            variant="outlined"
-            density="comfortable"
-            label="统计指标"
-            :items="indexes"
-            multiple
-          />
-        </v-col>
-
-        <!-- submit button -->
-        <v-col
-          cols="12"
-          class="py-0 mb-4"
-        >
+          <!-- close button -->
           <v-btn
-            color="primary"
-            block
-            :disabled="submitting"
-            @click="submit"
+            icon
+            elevation="0"
+            size="small"
+            class="ma-3"
+            position="absolute"
+            location="top end"
+            @click="emit('update:modelValue', false)"
           >
-            <v-progress-circular
-              v-if="submitting"
-              indeterminate
-              width="2"
-              size="20"
-            />
-            <template v-else>
-              提交
-            </template>
+            <v-icon>mdi-close</v-icon>
           </v-btn>
-        </v-col>
-      </v-card-text>
+
+          <!-- title -->
+          <v-card-title> 编辑主题 </v-card-title>
+
+          <v-divider class="mt-2 mb-1" />
+
+          <v-card-text>
+            <!-- alert -->
+            <v-col
+              cols="12"
+              class="pa-0"
+            >
+              <v-alert
+                v-model="warning.model"
+                closable
+                type="warning"
+                variant="tonal"
+                class="mb-5"
+              >
+                {{ warning.indication }}
+              </v-alert>
+              <v-alert
+                v-model="error.model"
+                closable
+                type="error"
+                variant="tonal"
+                class="mb-5"
+              >
+                {{ error.indication }}
+              </v-alert>
+            </v-col>
+
+            <v-form ref="formRef">
+              <!-- name -->
+              <v-col
+                cols="12"
+                class="pa-0 pb-1"
+              >
+                <v-text-field
+                  v-model="form.name"
+                  variant="outlined"
+                  density="compact"
+                  label="名称*"
+                  :rules="[
+                    val=>!!val || '名称不可为空！'
+                  ]"
+                  @blur="form.name = form.name.trim()"
+                />
+              </v-col>
+
+              <!-- theme color -->
+              <v-col
+                cols="12"
+                class="px-0 pb-1 pt-2"
+              >
+                <v-select
+                  v-model="form.color"
+                  color="primary"
+                  variant="outlined"
+                  density="compact"
+                  label="主题色*"
+                  :items="colors"
+                  item-title="color"
+                  item-value="value"
+                >
+                  <template #item="{item:{title, value: val}}">
+                    <v-list-item
+                      @click="form.color = val"
+                    >
+                      <div
+                        class="d-flex align-center"
+                      >
+                        <v-card
+                          :color="title"
+                          height="24"
+                          width="24"
+                          flat
+                          rounded="lg"
+                          class="mr-2"
+                        />
+                        {{ val }}
+                      </div>
+                    </v-list-item>
+                  </template>
+                  <template #selection="{item: {value: val, title}}">
+                    <div
+                      class="d-flex align-center"
+                    >
+                      <v-card
+                        :color="title"
+                        height="24"
+                        width="24"
+                        flat
+                        rounded="lg"
+                        class="mr-2"
+                      />
+                      {{ val }}
+                    </div>
+                  </template>
+                </v-select>
+              </v-col>
+
+              <!-- low and high -->
+              <v-col
+                cols="12"
+                class="px-0 d-flex align-center justify-space-between pb-1 pt-2"
+              >
+                <v-col
+                  cols="6"
+                  style="position: relative"
+                  class="pa-0 pr-3"
+                >
+                  <v-text-field
+                    v-model="form.low"
+                    label="低值*"
+                    variant="outlined"
+                    density="compact"
+                    type="number"
+                    :rules="[
+                      val => !!val || '低值不可为空！',
+                      val => (+val <= (+form.high || val)) || '低值不可大于高值！'
+                    ]"
+                  />
+                </v-col>
+                <v-col
+                  cols="6"
+                  style="position: relative"
+                  class="pa-0 pl-3"
+                >
+                  <v-text-field
+                    v-model="form.high"
+                    label="高值*"
+                    variant="outlined"
+                    density="compact"
+                    type="number"
+                    :rules="[
+                      val=>!!val || '高值不可为空！',
+                      val => (+val >= (+form.low || val)) || '高值不可低于高值！'
+                    ]"
+                  />
+                </v-col>
+              </v-col>
+
+              <!-- indexes -->
+              <v-col
+                cols="12"
+                class="px-0 pb-1 pt-2"
+              >
+                <v-select
+                  v-model="form.indexes"
+                  color="primary"
+                  variant="outlined"
+                  density="compact"
+                  label="统计指标*"
+                  :items="indexes"
+                  :rules="[
+                    val=>!!val?.length || '统计指标不可为空！'
+                  ]"
+                  multiple
+                />
+              </v-col>
+            </v-form>
+
+            <!-- submit button -->
+            <v-col
+              cols="12"
+              class="px-0 pb-0 pt-2"
+            >
+              <v-btn
+                color="primary"
+                block
+                :loading="submitting"
+                @click="submit"
+              >
+                提交
+              </v-btn>
+            </v-col>
+          </v-card-text>
+        </v-card>
+      </v-col>
     </v-card>
   </v-dialog>
 </template>
@@ -229,7 +221,6 @@ import {
   reactive, ref, watchEffect,
 } from 'vue';
 import { useDisplay } from 'vuetify';
-import { hasValue } from '@/utils/common';
 import notify from '@/utils/notification';
 import colorsJson from '@/assets/colors.json';
 import { useStore } from 'vuex';
@@ -249,21 +240,11 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue', 'reload']);
 
-// static
-const fieldLabelMap = {
-  low: '低值',
-  high: '高值',
-  color: '主题色',
-  name: '名称',
-};
-
-// reactive
 const { smAndDown } = useDisplay();
 const store = useStore();
-const lowFocused = ref(false);
-const highFocused = ref(false);
 const submitting = ref(false);
 const indexes = ref(['平均值', '总计', '最值']);
+const formRef = ref(null);
 const colors = reactive(colorsJson);
 const form = reactive({
   low: null,
@@ -271,12 +252,6 @@ const form = reactive({
   color: 'green',
   name: '',
   indexes: [],
-});
-const errorMessages = reactive({
-  low: '',
-  high: '',
-  color: '',
-  name: '',
 });
 const error = reactive({
   model: false,
@@ -287,49 +262,12 @@ const warning = reactive({
   indication: '',
 });
 
-// funcs
-function resetValidation(field = 'all') {
-  let fields;
-  if (field === 'all') {
-    fields = Object.keys(form);
-  } else {
-    fields = [field];
-  }
-
-  fields.forEach((f) => { errorMessages[f] = ''; });
-}
-
-function validate(field = 'all') {
-  let fields;
-  let valid = true;
-  if (field === 'all') {
-    fields = Object.keys(form);
-  } else {
-    fields = [field];
-  }
-
-  fields.forEach((f) => {
-    if (!hasValue(form[f])) {
-      errorMessages[f] = `${fieldLabelMap[f]} 不可为空`;
-      valid = false;
-    }
-  });
-
-  if (valid && field === 'all' && form.low >= form.high) {
-    errorMessages.low = `${fieldLabelMap.low} 应小于 ${fieldLabelMap.high}`;
-    errorMessages.high = `${fieldLabelMap.high} 应大于 ${fieldLabelMap.low}`;
-    valid = false;
-  }
-
-  return valid;
-}
-
 async function updateTheme(themeId) {
   const theme = AV.Object.createWithoutData('Theme', themeId);
   theme.set('name', form.name);
   theme.set('color', form.color);
-  theme.set('low', form.low);
-  theme.set('high', form.high);
+  theme.set('low', +form.low);
+  theme.set('high', +form.high);
   theme.set('indexes', form.indexes);
   await theme.save();
 }
@@ -341,7 +279,7 @@ async function checkRepeat(themeId) {
 }
 
 async function submit() {
-  const valid = validate();
+  const { valid } = await formRef.value.validate();
   if (valid) {
     submitting.value = true;
     try {
@@ -349,7 +287,7 @@ async function submit() {
       const repeat = await checkRepeat(id);
       if (repeat) {
         warning.model = true;
-        warning.indication = '同名主题已存在';
+        warning.indication = '同名主题已存在！';
       } else {
         await updateTheme(id);
         emit('update:modelValue', false);
@@ -364,7 +302,7 @@ async function submit() {
     submitting.value = false;
   } else {
     warning.model = true;
-    warning.indication = '请先确保输入有效';
+    warning.indication = '请先确保输入有效！';
   }
 }
 

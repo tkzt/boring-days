@@ -1,7 +1,7 @@
 <template>
   <v-app>
     <notification />
-    <v-main style="background-color: #f2f3f8">
+    <v-main :style="{'background-color': theme.global.current.value.dark?'':'#f2f3f8'}">
       <router-view />
       <v-overlay
         v-model="store.state.loading"
@@ -17,9 +17,22 @@
 </template>
 <script setup>
 import { useStore } from 'vuex';
-import Notification from '@/components/Notification.vue';
+import Notification from '@/components/NotificationBar.vue';
+import { onMounted } from 'vue';
+import { useTheme } from 'vuetify';
 
 const store = useStore();
+const theme = useTheme();
+
+onMounted(() => {
+  const cachedTheme = localStorage.getItem('colorTheme');
+
+  if (cachedTheme) {
+    theme.global.name.value = cachedTheme;
+  } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    theme.global.name.value = 'dark';
+  }
+});
 </script>
 <style>
 html {

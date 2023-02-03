@@ -1,3 +1,10 @@
 {
-    "editor.defaultFormatter": "octref.vetur"
+    "editor.defaultFormatter": "Vue.volar",
+    "cSpell.words": [
+        "fontface",
+        "idxes",
+        "materialdesignicons",
+        "roboto",
+        "Vite"
+    ]
 }
