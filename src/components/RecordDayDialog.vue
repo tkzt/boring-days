@@ -122,7 +122,7 @@
                   ]"
                   :hint="
                     tempSum.length?
-                      `sum: ${tempSum.reduce((pre, curr)=>pre+curr, 0)
+                      `sum: ${tempSum.reduce((pre, curr)=>+(pre+curr).toFixed(2), 0)
                       } (${tempSum.map(t=>t>0?'+'+t:t).join('')})`:
                       ''
                   "
@@ -133,7 +133,8 @@
                     form.value='';
                   "
                   @blur="
-                    form.value = ((+form.value||0)+tempSum.reduce((pre, curr)=>pre+curr, 0))+'';
+                    form.value =
+                      ((+form.value||0)+tempSum.reduce((pre, curr)=>+(pre+curr).toFixed(2), 0))+'';
                     tempSum = []
                   "
                 />
