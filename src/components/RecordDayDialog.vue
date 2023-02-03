@@ -123,7 +123,7 @@
                   :hint="
                     tempSum.length?
                       `sum: ${tempSum.reduce((pre, curr)=>pre+curr, 0)
-                      }(${tempSum.map(t=>t>0?'+'+t:t).join('')})`:
+                      } (${tempSum.map(t=>t>0?'+'+t:t).join('')})`:
                       ''
                   "
                   type="number"
@@ -133,7 +133,7 @@
                     form.value='';
                   "
                   @blur="
-                    form.value = tempSum.reduce((pre, curr)=>pre+curr, 0)+'';
+                    form.value = ((+form.value||0)+tempSum.reduce((pre, curr)=>pre+curr, 0))+'';
                     tempSum = []
                   "
                 />
