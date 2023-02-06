@@ -35,7 +35,7 @@ _以下是之前的介绍。_
 
 ## Getting Started
 
-APP 托管在[这里](https://boring-plans.github.io/boring-days)。
+APP 托管在[这里](https://boring-days.tkzt.cn)。
 
 比如说，你想记录每日喝水情况。
 
