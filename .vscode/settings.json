@@ -1,10 +1,17 @@
 {
-    "editor.defaultFormatter": "Vue.volar",
     "cSpell.words": [
         "fontface",
         "idxes",
         "materialdesignicons",
         "roboto",
         "Vite"
-    ]
+    ],
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "javascript.format.semicolons": "insert",
+    "javascript.format.placeOpenBraceOnNewLineForControlBlocks": true,
+    "prettier.singleQuote": true,
+    "prettier.trailingComma": "all",
+    "[vue]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }

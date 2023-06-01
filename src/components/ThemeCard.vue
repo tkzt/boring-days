@@ -2,27 +2,27 @@
   <v-card
     ref="theCardRef"
     class="d-flex flex-wrap overflow-visible"
-    style="position: relative;"
-    :style="{padding: padding+'px'}"
+    style="position: relative"
+    :style="{ padding: padding + 'px' }"
     flat
     rounded="lg"
   >
     <div
       class="d-flex mb-2 text-caption align-center"
-      style="width: 100%; height: 12px;"
+      style="width: 100%; height: 12px"
     >
       <div
-        style="font-weight: bold; cursor: pointer;"
+        style="font-weight: bold; cursor: pointer"
         @mouseenter="mdAndUp && showIndexes()"
         @mouseleave="mdAndUp && (indexes.show = false)"
         @click="!mdAndUp && showIndexes()"
       >
-        {{ props.theme?.attributes.name||'' }}
+        {{ props.theme?.attributes.name || '' }}
       </div>
       <div
         v-click-outside="{
-          handler: ()=>(indexes.show = false),
-          closeConditional: ()=>indexes.show
+          handler: () => (indexes.show = false),
+          closeConditional: () => indexes.show,
         }"
       >
         <v-tooltip
@@ -31,21 +31,17 @@
           activator="parent"
           :offset="[5, 5]"
         >
-          <div
-            class="text-caption"
-          >
+          <div class="text-caption">
             <template v-if="indexes.result?.length">
               <div class="d-flex align-center">
                 <v-divider class="ma-1 ml-0" />
                 年
                 <v-divider class="ma-1 mr-0" />
               </div>
-              <div
-                v-for="i,idx in indexes.result"
-                :key="idx"
-                class="d-flex"
-              >
-                {{ i.index }}<v-spacer /><strong class="ml-2">{{ i.value.toFixed(2) }}</strong>
+              <div v-for="(i, idx) in indexes.result" :key="idx" class="d-flex">
+                {{ i.index }}<v-spacer /><strong class="ml-2">{{
+                  i.value.toFixed(2)
+                }}</strong>
               </div>
               <template v-if="indexes.monthResult?.length">
                 <div class="d-flex align-center">
@@ -54,91 +50,88 @@
                   <v-divider class="ma-1 mr-0" />
                 </div>
                 <div
-                  v-for="i,idx in indexes.monthResult"
+                  v-for="(i, idx) in indexes.monthResult"
                   :key="idx"
                   class="d-flex"
                 >
-                  {{ i.index }}<v-spacer /><strong class="ml-2">{{ i.value.toFixed(2) }}</strong>
+                  {{ i.index }}<v-spacer /><strong class="ml-2">{{
+                    i.value.toFixed(2)
+                  }}</strong>
                 </div>
               </template>
             </template>
-            <template v-else>
-              无统计指标或无数据~
-            </template>
+            <template v-else> 无统计指标或无数据~ </template>
           </div>
         </v-tooltip>
       </div>
       <v-spacer />
-      <v-menu
-        v-model="rightClickMenu"
-        anchor="start top"
-      >
-        <template #activator="{props: p}">
-          <v-btn
-            size="24"
-            icon
-            v-bind="p"
-            flat
-          >
-            <v-icon
-              style="cursor: pointer"
-            >
-              mdi-dots-horizontal
-            </v-icon>
+      <v-menu v-model="rightClickMenu" anchor="start top">
+        <template #activator="{ props: p }">
+          <v-btn size="24" icon v-bind="p" flat>
+            <v-icon style="cursor: pointer"> mdi-dots-horizontal </v-icon>
           </v-btn>
         </template>
-        <v-list
-          density="compact"
-        >
-          <v-list-item
-            class="text-caption"
-            @click="editDialog = true;"
-          >
+        <v-list density="compact">
+          <v-list-item class="text-caption" @click="editDialog = true">
             编辑
           </v-list-item>
           <v-list-item
             class="text-caption text-error"
-            @click="deleteDialog = true;"
+            @click="deleteDialog = true"
           >
             删除
           </v-list-item>
         </v-list>
       </v-menu>
     </div>
-    <template
-      v-for="[date, day], idx in Object.entries(days).sort(([k1], [k2])=>k1>k2?1:-1)"
-      :key="idx"
-    >
-      <day-card
-        v-if="mdAndUp"
-        :day="{
-          ...day,
-          date,
-          color: calcColor(day.value)
-        }"
-        @click="emit('editDay', {
-          ...day,
-          date,
-        })"
-      />
-      <day-card
-        v-else
-        :day="{
-          ...day,
-          date,
-          color: calcColor(day.value)
-        }"
-        @edit-day="emit('editDay', {
-          ...day,
-          date,
-        })"
-      />
+    <template v-if="!empty">
+      <template
+        v-for="([date, day], idx) in Object.entries(days).sort(([k1], [k2]) =>
+          k1 > k2 ? 1 : -1,
+        )"
+        :key="idx"
+      >
+        <day-card
+          v-if="mdAndUp"
+          :day="{
+            ...day,
+            date,
+            color: calcColor(day.value),
+          }"
+          @click="
+            emit('editDay', {
+              ...day,
+              date,
+            })
+          "
+        />
+        <day-card
+          v-else
+          :day="{
+            ...day,
+            date,
+            color: calcColor(day.value),
+          }"
+          @edit-day="
+            emit('editDay', {
+              ...day,
+              date,
+            })
+          "
+        />
+      </template>
     </template>
+    <div v-else class="text-caption">无数据～</div>
+
     <v-overlay
       :model-value="loading"
       contained
       class="d-flex align-center justify-center"
-      :scrim="theme.global.current.value.dark?'rgba(255, 255, 255, .17)':'rgba(0, 0, 0, .37)'"
+      :scrim="
+        theme.global.current.value.dark
+          ? 'rgba(255, 255, 255, .17)'
+          : 'rgba(0, 0, 0, .37)'
+      "
     >
       <v-progress-circular
         indeterminate
@@ -160,9 +153,7 @@
   />
 </template>
 <script setup>
-import {
-  onMounted, ref, computed, reactive, watch, nextTick,
-} from 'vue';
+import { onMounted, ref, computed, reactive, watch, nextTick } from 'vue';
 import colorsJson from '@/assets/colors.json';
 import dayjs from 'dayjs';
 import AV from 'leancloud-storage';
@@ -203,13 +194,23 @@ const indexes = reactive({ show: false, result: [], monthResult: [] });
 const days = reactive({});
 
 const colors = computed(
-  () => props.theme && colorsJson.find((c) => c.value === props.theme.attributes.color).colors,
+  () =>
+    props.theme &&
+    colorsJson.find((c) => c.value === props.theme.attributes.color).colors,
+);
+const empty = computed(
+  () =>
+    !loading.value && Object.values(days).every((d) => d.value === undefined),
 );
 
 // funcs
 function genDaysKeys(d = null) {
   const firstDay = dayjs(new Date(`${props.year}-01-01 00:00:00`));
-  const day = d || (props.year === dayjs().year() ? dayjs().clone() : dayjs(`${props.year}-12-31`));
+  const day =
+    d ||
+    (props.year === dayjs().year()
+      ? dayjs().clone()
+      : dayjs(`${props.year}-12-31`));
   const arr = [day.format('YYYY-MM-DD')];
   const next = day.add(-1, 'day');
   if (next < firstDay) {
@@ -226,11 +227,19 @@ async function getRecords() {
     const themeQuery = new AV.Query('Record');
     themeQuery.equalTo('theme', targetTheme);
     const dateQueryStart = new AV.Query('Record');
-    dateQueryStart.greaterThanOrEqualTo('date', new Date(`${props.year}-01-01 00:00:00`));
+    dateQueryStart.greaterThanOrEqualTo(
+      'date',
+      new Date(`${props.year}-01-01 00:00:00`),
+    );
     const dateQueryStop = new AV.Query('Record');
-    dateQueryStop.lessThanOrEqualTo('date', new Date(`${props.year}-12-31 23:59:59`));
+    dateQueryStop.lessThanOrEqualTo(
+      'date',
+      new Date(`${props.year}-12-31 23:59:59`),
+    );
     (
-      await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop).limit(366).find()
+      await AV.Query.and(themeQuery, dateQueryStart, dateQueryStop)
+        .limit(366)
+        .find()
     ).forEach((r) => {
       const dateKey = dayjs(r.attributes.date).format('YYYY-MM-DD');
       days[dateKey] = {
@@ -248,7 +257,8 @@ async function getRecords() {
 }
 
 function calcPadding() {
-  padding.value = (theCardRef.value.$el.offsetWidth % (mdAndUp ? 16 : 13)) / 2 + 6.5;
+  padding.value =
+    (theCardRef.value.$el.offsetWidth % (mdAndUp ? 16 : 13)) / 2 + 6.5;
 }
 
 function calcColor(value) {
@@ -294,12 +304,15 @@ function calcIndexes(idxes, values) {
           });
           break;
         case '最值':
-          result.push(...calcMinMax(values).map((m, i) => ({
-            index: `最${i === 0 ? '小' : '大'}`,
-            value: m,
-          })));
+          result.push(
+            ...calcMinMax(values).map((m, i) => ({
+              index: `最${i === 0 ? '小' : '大'}`,
+              value: m,
+            })),
+          );
           break;
-        default: break;
+        default:
+          break;
       }
     });
   }
@@ -314,7 +327,9 @@ function showIndexes() {
   // year
   const indexesResult = calcIndexes(
     props.theme.attributes.indexes || [],
-    Object.values(days).filter((v) => !checkDayBlank(v)).map((v) => v.value),
+    Object.values(days)
+      .filter((v) => !checkDayBlank(v))
+      .map((v) => v.value),
   );
 
   if (indexesResult.length > 0) {
@@ -324,9 +339,12 @@ function showIndexes() {
       // month
       const monthIndexesResult = calcIndexes(
         props.theme.attributes.indexes || [],
-        Object
-          .entries(days)
-          .filter(([k, v]) => !checkDayBlank(v) && new Date(k).getMonth() === new Date().getMonth())
+        Object.entries(days)
+          .filter(
+            ([k, v]) =>
+              !checkDayBlank(v) &&
+              new Date(k).getMonth() === new Date().getMonth(),
+          )
           .map(([, v]) => v.value),
       );
       indexes.monthResult = monthIndexesResult;
@@ -352,7 +370,9 @@ watch(loading, (val) => {
 onMounted(() => {
   calcPadding();
   unit.value = (props.theme.attributes.high - props.theme.attributes.low) / 4;
-  genDaysKeys().forEach((k) => { days[k] = {}; });
+  genDaysKeys().forEach((k) => {
+    days[k] = {};
+  });
   getRecords();
 });
 </script>

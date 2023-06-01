@@ -24,6 +24,11 @@ module.exports = {
         'state',
       ],
     }],
+    'object-curly-newline': 'off',
+    'implicit-arrow-linebreak': 'off',
+    'operator-linebreak': 'off',
+    'vue/max-attributes-per-line': 'off',
+    'vue/singleline-html-element-content-newline': 'off',
   },
   globals: {
     defineProps: 'readonly',
