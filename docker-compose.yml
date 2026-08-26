@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    env_file:
+      - .env
     environment:
       NUXT_DATABASE_URL: postgresql://calendar:calendar@db:5432/boring_days
       NUXT_AUTH_SECRET: ${NUXT_AUTH_SECRET:?Set NUXT_AUTH_SECRET to a long random value before starting Docker Compose}
