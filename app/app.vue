@@ -38,7 +38,7 @@
           </article>
           <div class="week-events">
             <button v-for="segment in week.eventSegments" :key="`${segment.event.id}-${segment.startDate}`"
-              :class="['event-chip', `status-${segment.event.status}`, eventSegmentClass(segment.event, segment.startDate, segment.endDate)]"
+              :class="['event-chip', `status-${segment.event.status}`, eventSegmentClass(segment)]"
               :style="{ gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`, gridRow: segment.row }"
               :title="`${segment.event.title} - ${statusLabel(segment.event.status)}`" @click="openEdit(segment.event)"
               @contextmenu.prevent.stop="openEventMenu($event, segment.event)">
@@ -167,6 +167,8 @@ interface EventSegment {
   endIndex: number
   startDate: string
   endDate: string
+  continuesFromPreviousWeek: boolean
+  continuesToNextWeek: boolean
   row: number
 }
 
@@ -250,16 +252,27 @@ function eventSegmentsForWeek(days: CalendarDay[]): EventSegment[] {
   return events.value
     .filter(event => event.eventDate <= weekEnd && event.endDate >= weekStart)
     .map(event => {
+      const continuesFromPreviousWeek = event.eventDate < weekStart
+      const continuesToNextWeek = event.endDate > weekEnd
       const startIndex = event.eventDate <= weekStart ? 0 : days.findIndex(day => day.key === event.eventDate)
       const endIndex = event.endDate >= weekEnd ? days.length - 1 : days.findIndex(day => day.key === event.endDate)
-      return { event, startIndex, endIndex }
+      return { event, startIndex, endIndex, continuesFromPreviousWeek, continuesToNextWeek }
     })
     .sort((first, second) => first.startIndex - second.startIndex || eventDuration(second.event) - eventDuration(first.event))
-    .map(({ event, startIndex, endIndex }) => {
+    .map(({ event, startIndex, endIndex, continuesFromPreviousWeek, continuesToNextWeek }) => {
       const existingRow = rowEndIndexes.findIndex(rowEndIndex => rowEndIndex < startIndex)
       const rowIndex = existingRow === -1 ? rowEndIndexes.length : existingRow
       rowEndIndexes[rowIndex] = endIndex
-      return { event, startIndex, endIndex, startDate: days[startIndex].key, endDate: days[endIndex].key, row: rowIndex + 1 }
+      return {
+        event,
+        startIndex,
+        endIndex,
+        startDate: days[startIndex].key,
+        endDate: days[endIndex].key,
+        continuesFromPreviousWeek,
+        continuesToNextWeek,
+        row: rowIndex + 1
+      }
     })
 }
 
@@ -267,9 +280,9 @@ function shouldShowEventLabel(event: CalendarEvent, date: string) {
   return event.eventDate === date || new Date(`${date}T00:00:00`).getDay() === 1
 }
 
-function eventSegmentClass(event: CalendarEvent, startDate: string, endDate: string) {
-  const startsSegment = event.eventDate === startDate
-  const endsSegment = event.endDate === endDate || new Date(`${endDate}T00:00:00`).getDay() === 0
+function eventSegmentClass(segment: EventSegment) {
+  const startsSegment = !segment.continuesFromPreviousWeek
+  const endsSegment = !segment.continuesToNextWeek
   if (startsSegment && endsSegment) return 'is-single-day'
   return startsSegment ? 'is-segment-start' : endsSegment ? 'is-segment-end' : 'is-segment-middle'
 }
@@ -763,7 +776,6 @@ h2 {
 }
 
 .event-chip.is-segment-start {
-  margin-left: 8px;
   border-radius: 3px 0 0 3px;
 }
 
