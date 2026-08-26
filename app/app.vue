@@ -1,19 +1,21 @@
 <template>
   <main class="calendar-app" @click="closeContextMenu">
     <NuxtRouteAnnouncer />
-    <section class="app-shell">
+    <section v-if="authUser" class="app-shell">
       <header class="topbar">
         <div>
           <p class="eyebrow">BORING DAYS</p>
           <h1>{{ monthTitle }}</h1>
         </div>
         <div class="toolbar">
+          <span class="user-name">{{ authUser.username }}</span>
           <button class="icon-button" aria-label="上一个月" title="上一个月"
             @click="moveMonth(-1)">‹</button>
           <button class="today-button" @click="goToday">今天</button>
           <button class="icon-button" aria-label="下一个月" title="下一个月"
             @click="moveMonth(1)">›</button>
           <button class="add-button" @click="openCreate()">+ 新建日程</button>
+          <button class="logout-button" @click="logout">退出</button>
         </div>
       </header>
 
@@ -41,6 +43,26 @@
           </div>
         </article>
       </section>
+    </section>
+
+    <section v-else class="login-shell" aria-labelledby="login-title">
+      <form class="login-panel" @submit.prevent="submitAuthentication">
+        <p class="eyebrow">BORING DAYS</p>
+        <h1 id="login-title">登录日程</h1>
+        <p class="login-intro">登录后查看和管理只属于你的日程。</p>
+        <label>用户名
+          <input v-model.trim="authForm.username" required minlength="3" maxlength="30"
+            autocomplete="username" placeholder="小写字母、数字或下划线" />
+        </label>
+        <label>密码
+          <input v-model="authForm.password" required minlength="8" maxlength="128" type="password"
+            autocomplete="current-password" placeholder="至少 8 个字符" />
+        </label>
+        <p v-if="authError" class="form-error">{{ authError }}</p>
+        <button class="auth-submit" :disabled="isAuthenticating">
+          {{ isAuthenticating ? '请稍候…' : '登录' }}
+        </button>
+      </form>
     </section>
 
     <div v-if="contextMenu" class="context-menu"
@@ -125,6 +147,11 @@ interface CalendarEvent {
   status: EventStatus
 }
 
+interface AuthUser {
+  id: number
+  username: string
+}
+
 type ContextMenu =
   | { kind: 'day', date: string, x: number, y: number }
   | { kind: 'event', event: CalendarEvent, x: number, y: number }
@@ -151,6 +178,10 @@ const errorMessage = ref('')
 const contextMenu = ref<ContextMenu | null>(null)
 const pendingDeletion = ref<PendingDeletion | null>(null)
 const isDeleting = ref(false)
+const authUser = ref<AuthUser | null>(null)
+const authForm = reactive({ username: '', password: '' })
+const authError = ref('')
+const isAuthenticating = ref(false)
 const emptyForm = () => ({ title: '', description: '', eventDate: formatDate(new Date()), endDate: formatDate(new Date()), startTime: '', status: 'planned' as EventStatus })
 const form = reactive(emptyForm())
 
@@ -263,6 +294,45 @@ async function loadEvents() {
   }
 }
 
+function authenticationError(error: unknown) {
+  const statusMessage = (error as { data?: { statusMessage?: unknown } })?.data?.statusMessage
+  return typeof statusMessage === 'string' ? statusMessage : '请求失败，请稍后重试。'
+}
+
+async function loadSession() {
+  try {
+    authUser.value = await $fetch<AuthUser>('/api/auth/me')
+    await loadEvents()
+  } catch {
+    authUser.value = null
+  }
+}
+
+async function submitAuthentication() {
+  isAuthenticating.value = true
+  authError.value = ''
+  try {
+    authUser.value = await $fetch<AuthUser>('/api/auth/login', {
+      method: 'POST',
+      body: authForm
+    })
+    authForm.password = ''
+    await loadEvents()
+  } catch (error) {
+    authError.value = authenticationError(error)
+  } finally {
+    isAuthenticating.value = false
+  }
+}
+
+async function logout() {
+  await $fetch('/api/auth/logout', { method: 'POST' })
+  authUser.value = null
+  events.value = []
+  closeEditor()
+  closeConfirmation()
+}
+
 function moveMonth(direction: number) {
   currentMonth.value = new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + direction, 1)
   loadEvents()
@@ -321,7 +391,7 @@ function closeMenuOnEscape(event: KeyboardEvent) {
   }
 }
 
-onMounted(loadEvents)
+onMounted(loadSession)
 </script>
 
 <style>
@@ -405,6 +475,15 @@ h2 {
   gap: 8px;
 }
 
+.user-name {
+  max-width: 150px;
+  overflow: hidden;
+  color: #5e6068;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .icon-button,
 .close-button {
   width: 34px;
@@ -418,13 +497,74 @@ h2 {
 }
 
 .today-button,
-.cancel-button {
+.cancel-button,
+.logout-button {
   padding: 7px 13px;
   border: 1px solid #d7d7dc;
   border-radius: 6px;
   background: #fff;
   color: #303136;
   font-size: 14px;
+}
+
+.logout-button {
+  color: #5e6068;
+}
+
+.login-shell {
+  display: grid;
+  min-height: calc(100vh - 64px);
+  place-items: center;
+}
+
+.login-panel {
+  display: grid;
+  width: min(100%, 380px);
+  gap: 16px;
+  padding: 32px;
+  border: 1px solid #dedee3;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 38px rgba(26, 28, 32, .08);
+}
+
+.login-intro {
+  margin: -6px 0 4px;
+  color: #6a6c74;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.login-panel label {
+  display: grid;
+  gap: 6px;
+  color: #4d4e54;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.login-panel input {
+  width: 100%;
+  border: 1px solid #d2d3d8;
+  border-radius: 6px;
+  padding: 10px;
+  background: #fff;
+  color: #27282d;
+  font-size: 14px;
+}
+
+.auth-submit {
+  border: 0;
+  border-radius: 6px;
+  padding: 10px 14px;
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 600;
+}
+
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: .65;
 }
 
 .add-button,
@@ -727,10 +867,20 @@ h2 {
 
   .toolbar {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .add-button {
     margin-left: auto;
+  }
+
+  .login-shell {
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .login-panel {
+    padding: 24px;
   }
 
   .status-legend {

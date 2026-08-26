@@ -3,6 +3,7 @@ export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
   runtimeConfig: {
-    databaseUrl: process.env.DATABASE_URL || 'postgresql://calendar:calendar@localhost:5432/boring_days'
+    databaseUrl: process.env.DATABASE_URL || 'postgresql://calendar:calendar@localhost:5432/boring_days',
+    authSecret: process.env.NUXT_AUTH_SECRET || 'development-only-change-this-secret'
   }
 })

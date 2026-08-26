@@ -5,10 +5,12 @@ Nuxt 4 + PostgreSQL 日历应用。日程可以标记为待开始、正在做、
 ## 使用 Docker Compose 运行
 
 ```bash
+export NUXT_AUTH_SECRET="a-long-random-secret-at-least-32-characters"
 docker compose up --build
 ```
 
 打开 `http://localhost:3000`。PostgreSQL 数据保存在具名卷 `postgres_data` 中；首次请求日程 API 时会自动创建表。
+未登录时无法读取或修改日程。账号由管理员预先创建；生产环境必须设置高强度的 `NUXT_AUTH_SECRET`，用于签名登录会话 Cookie。
 
 ## 本地开发
 
@@ -18,7 +20,13 @@ docker compose up -d db
 pnpm dev
 ```
 
-本地开发时可复制 `.env.example` 为 `.env`，或使用默认连接串。Nuxt 在运行时读取 `NUXT_DATABASE_URL`。生产构建：
+本地开发时可创建 `.env`，或使用默认连接串。Nuxt 在运行时读取 `NUXT_DATABASE_URL` 和 `NUXT_AUTH_SECRET`。例如：
+
+```bash
+NUXT_AUTH_SECRET="a-long-random-secret-at-least-32-characters"
+```
+
+生产构建：
 
 ```bash
 pnpm build

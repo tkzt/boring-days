@@ -14,8 +14,16 @@ export function getDatabase() {
 export async function ensureSchema() {
   if (!initialized) {
     initialized = getDatabase().query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        username VARCHAR(30) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
       CREATE TABLE IF NOT EXISTS calendar_events (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
         title VARCHAR(120) NOT NULL,
         description VARCHAR(500),
         event_date DATE NOT NULL,
@@ -27,6 +35,7 @@ export async function ensureSchema() {
         CONSTRAINT valid_event_status CHECK (status IN ('planned', 'in_progress', 'completed', 'overdue', 'cancelled'))
       )
     `).then(async () => {
+      await getDatabase().query('ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id) ON DELETE CASCADE')
       await getDatabase().query('ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS end_date DATE')
       await getDatabase().query('UPDATE calendar_events SET end_date = event_date WHERE end_date IS NULL')
       await getDatabase().query('ALTER TABLE calendar_events ALTER COLUMN end_date SET NOT NULL')
