@@ -8,7 +8,6 @@
           <h1>{{ monthTitle }}</h1>
         </div>
         <div class="toolbar">
-          <span class="user-name">{{ authUser.username }}</span>
           <button class="icon-button" aria-label="上一个月" title="上一个月"
             @click="moveMonth(-1)">‹</button>
           <button class="today-button" @click="goToday">今天</button>
@@ -27,21 +26,29 @@
       </div>
 
       <section class="calendar" aria-label="月历">
-        <div v-for="weekday in weekdays" :key="weekday" class="weekday">{{ weekday }}</div>
-        <article v-for="day in calendarDays" :key="day.key"
-          :class="['day-cell', { 'is-outside': !day.isCurrentMonth, 'is-today': day.isToday }]"
-          @dblclick="openCreate(day.date)" @contextmenu.prevent="openDayMenu($event, day.key)">
-          <time :datetime="day.key">{{ day.date.getDate() }}</time>
-          <div class="events">
-            <button v-for="event in eventsFor(day.key)" :key="event.id"
-              :class="['event-chip', `status-${event.status}`, eventSegmentClass(event, day.key)]"
-              :title="`${event.title} - ${statusLabel(event.status)}`" @click="openEdit(event)"
-              @contextmenu.prevent.stop="openEventMenu($event, event)">
-              <span v-if="event.startTime && event.eventDate === day.key" class="event-time">{{
-                event.startTime.slice(0, 5) }}</span>{{ event.title }}
+        <div class="calendar-weekdays">
+          <div v-for="weekday in weekdays" :key="weekday" class="weekday">{{ weekday }}</div>
+        </div>
+        <section v-for="week in calendarWeeks" :key="week.days[0].key" class="calendar-week"
+          :style="{ minHeight: `${week.minHeight}px` }">
+          <article v-for="day in week.days" :key="day.key"
+            :class="['day-cell', { 'is-outside': !day.isCurrentMonth, 'is-today': day.isToday }]"
+            @dblclick="openCreate(day.date)" @contextmenu.prevent="openDayMenu($event, day.key)">
+            <time :datetime="day.key">{{ day.date.getDate() }}</time>
+          </article>
+          <div class="week-events">
+            <button v-for="segment in week.eventSegments" :key="`${segment.event.id}-${segment.startDate}`"
+              :class="['event-chip', `status-${segment.event.status}`, eventSegmentClass(segment.event, segment.startDate, segment.endDate)]"
+              :style="{ gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`, gridRow: segment.row }"
+              :title="`${segment.event.title} - ${statusLabel(segment.event.status)}`" @click="openEdit(segment.event)"
+              @contextmenu.prevent.stop="openEventMenu($event, segment.event)">
+              <template v-if="shouldShowEventLabel(segment.event, segment.startDate)">
+                <span v-if="segment.event.startTime && segment.event.eventDate === segment.startDate" class="event-time">{{
+                  segment.event.startTime.slice(0, 5) }}</span>{{ segment.event.title }}
+              </template>
             </button>
           </div>
-        </article>
+        </section>
       </section>
     </section>
 
@@ -147,6 +154,22 @@ interface CalendarEvent {
   status: EventStatus
 }
 
+interface CalendarDay {
+  date: Date
+  key: string
+  isCurrentMonth: boolean
+  isToday: boolean
+}
+
+interface EventSegment {
+  event: CalendarEvent
+  startIndex: number
+  endIndex: number
+  startDate: string
+  endDate: string
+  row: number
+}
+
 interface AuthUser {
   id: number
   username: string
@@ -197,6 +220,12 @@ const calendarDays = computed(() => {
     return { date, key: formatDate(date), isCurrentMonth: date.getMonth() === currentMonth.value.getMonth(), isToday: formatDate(date) === formatDate(new Date()) }
   })
 })
+const calendarWeeks = computed(() => Array.from({ length: 6 }, (_, weekIndex) => {
+  const days = calendarDays.value.slice(weekIndex * 7, weekIndex * 7 + 7)
+  const eventSegments = eventSegmentsForWeek(days)
+  const eventRows = Math.max(0, ...eventSegments.map(segment => segment.row))
+  return { days, eventSegments, minHeight: Math.max(130, 53 + eventRows * 26) }
+}))
 
 function formatDate(date: Date) {
   const year = date.getFullYear()
@@ -209,14 +238,38 @@ function statusLabel(status: EventStatus) {
   return statusOptions.find(item => item.value === status)?.label ?? status
 }
 
-function eventsFor(date: string) {
-  return events.value.filter(event => event.eventDate <= date && event.endDate >= date)
+function eventDuration(event: CalendarEvent) {
+  return new Date(`${event.endDate}T00:00:00`).getTime() - new Date(`${event.eventDate}T00:00:00`).getTime()
 }
 
-function eventSegmentClass(event: CalendarEvent, date: string) {
-  const dayOfWeek = new Date(`${date}T00:00:00`).getDay()
-  const startsSegment = event.eventDate === date || dayOfWeek === 1
-  const endsSegment = event.endDate === date || dayOfWeek === 0
+function eventSegmentsForWeek(days: CalendarDay[]): EventSegment[] {
+  const weekStart = days[0].key
+  const weekEnd = days[days.length - 1].key
+  const rowEndIndexes: number[] = []
+
+  return events.value
+    .filter(event => event.eventDate <= weekEnd && event.endDate >= weekStart)
+    .map(event => {
+      const startIndex = event.eventDate <= weekStart ? 0 : days.findIndex(day => day.key === event.eventDate)
+      const endIndex = event.endDate >= weekEnd ? days.length - 1 : days.findIndex(day => day.key === event.endDate)
+      return { event, startIndex, endIndex }
+    })
+    .sort((first, second) => first.startIndex - second.startIndex || eventDuration(second.event) - eventDuration(first.event))
+    .map(({ event, startIndex, endIndex }) => {
+      const existingRow = rowEndIndexes.findIndex(rowEndIndex => rowEndIndex < startIndex)
+      const rowIndex = existingRow === -1 ? rowEndIndexes.length : existingRow
+      rowEndIndexes[rowIndex] = endIndex
+      return { event, startIndex, endIndex, startDate: days[startIndex].key, endDate: days[endIndex].key, row: rowIndex + 1 }
+    })
+}
+
+function shouldShowEventLabel(event: CalendarEvent, date: string) {
+  return event.eventDate === date || new Date(`${date}T00:00:00`).getDay() === 1
+}
+
+function eventSegmentClass(event: CalendarEvent, startDate: string, endDate: string) {
+  const startsSegment = event.eventDate === startDate
+  const endsSegment = event.endDate === endDate || new Date(`${endDate}T00:00:00`).getDay() === 0
   if (startsSegment && endsSegment) return 'is-single-day'
   return startsSegment ? 'is-segment-start' : endsSegment ? 'is-segment-end' : 'is-segment-middle'
 }
@@ -622,8 +675,17 @@ h2 {
 }
 
 .calendar {
+  overflow: hidden;
+}
+
+.calendar-weekdays,
+.calendar-week {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.calendar-week {
+  position: relative;
 }
 
 .weekday {
@@ -636,6 +698,7 @@ h2 {
 }
 
 .day-cell {
+  box-sizing: border-box;
   min-height: 130px;
   padding: 10px 8px;
   border-right: 1px solid #e8e8ec;
@@ -643,7 +706,7 @@ h2 {
   background: #fff;
 }
 
-.day-cell:nth-child(7n) {
+.day-cell:last-child {
   border-right: 0;
 }
 
@@ -669,42 +732,53 @@ h2 {
   font-weight: 700;
 }
 
-.events {
+.week-events {
+  position: absolute;
+  top: 43px;
+  right: 0;
+  left: 0;
   display: grid;
-  gap: 4px;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-auto-rows: 22px;
+  gap: 4px 0;
+  pointer-events: none;
 }
 
 .event-chip {
   display: block;
   overflow: hidden;
-  width: 100%;
+  min-width: 0;
+  height: 22px;
   border: 0;
   border-left: 3px solid currentColor;
   border-radius: 3px;
-  padding: 4px 5px;
+  padding: 3px 5px;
   background: color-mix(in srgb, currentColor 12%, white);
   font-size: 12px;
+  line-height: 16px;
+  pointer-events: auto;
   text-align: left;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .event-chip.is-segment-start {
-  width: calc(100% + 9px);
-  margin-right: -9px;
+  margin-left: 8px;
   border-radius: 3px 0 0 3px;
 }
 
+.event-chip.is-single-day {
+  margin-right: 8px;
+  border-radius: 3px;
+}
+
 .event-chip.is-segment-middle {
-  width: calc(100% + 18px);
-  margin-left: -9px;
   border-left: 0;
   border-radius: 0;
 }
 
 .event-chip.is-segment-end {
-  width: calc(100% + 9px);
-  margin-left: -9px;
+  margin-right: 8px;
   border-left: 0;
   border-radius: 0 3px 3px 0;
 }
