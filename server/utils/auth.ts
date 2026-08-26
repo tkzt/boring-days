@@ -27,6 +27,12 @@ export function verifyPassword(password: string, storedHash: string) {
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
+export function hashPassword(password: string) {
+  const salt = randomBytes(16).toString('base64url')
+  const hash = scryptSync(password, salt, 64).toString('base64url')
+  return `${salt}:${hash}`
+}
+
 export function validateCredentials(payload: unknown) {
   const body = payload as { username?: unknown, password?: unknown }
   const username = typeof body?.username === 'string' ? body.username.trim().toLowerCase() : ''

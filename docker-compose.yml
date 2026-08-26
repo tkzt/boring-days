@@ -8,6 +8,7 @@ services:
     environment:
       NUXT_DATABASE_URL: postgresql://calendar:calendar@db:5432/boring_days
       NUXT_AUTH_SECRET: ${NUXT_AUTH_SECRET:?Set NUXT_AUTH_SECRET to a long random value before starting Docker Compose}
+      NUXT_USER_PASSWORD: ${NUXT_USER_PASSWORD:?Set NUXT_USER_PASSWORD to the admin password before starting Docker Compose}
     depends_on:
       db:
         condition: service_healthy

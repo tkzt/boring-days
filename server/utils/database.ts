@@ -1,4 +1,5 @@
 import { Pool } from 'pg'
+import { hashPassword } from './auth'
 
 let pool: Pool | undefined
 let initialized: Promise<void> | undefined
@@ -39,6 +40,15 @@ export async function ensureSchema() {
       await getDatabase().query('ALTER TABLE calendar_events ADD COLUMN IF NOT EXISTS end_date DATE')
       await getDatabase().query('UPDATE calendar_events SET end_date = event_date WHERE end_date IS NULL')
       await getDatabase().query('ALTER TABLE calendar_events ALTER COLUMN end_date SET NOT NULL')
+      const config = useRuntimeConfig()
+      if (!config.userPassword || config.userPassword.length < 8) {
+        throw new Error('NUXT_USER_PASSWORD must be at least 8 characters long.')
+      }
+      await getDatabase().query(
+        `INSERT INTO users (username, password_hash) VALUES ('admin', $1)
+         ON CONFLICT (username) DO UPDATE SET password_hash = EXCLUDED.password_hash`,
+        [hashPassword(config.userPassword)]
+      )
     }).then(() => undefined)
   }
   await initialized
