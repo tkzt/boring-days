@@ -1,6 +1,6 @@
 services:
   app:
-    image: crpi-ajljwp276r8ux8k4.cn-shanghai.personal.cr.aliyuncs.com/boring-plans/boring-days:v0.10 
+    image: crpi-ajljwp276r8ux8k4.cn-shanghai.personal.cr.aliyuncs.com/boring-plans/boring-days:${IMAGE_TAG:?Set IMAGE_TAG to the image tag built by GitHub Actions}
     ports:
       - "3000:3000"
     env_file:

@@ -1,0 +1,47 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+    env:
+      REGISTRY: crpi-ajljwp276r8ux8k4.cn-shanghai.personal.cr.aliyuncs.com
+      IMAGE_NAME: boring-plans/boring-days
+
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+      - name: Set image tag
+        run: echo "TAG=$(date +'%y%m%d')" >> "$GITHUB_ENV"
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag "$REGISTRY/$IMAGE_NAME:$TAG"
+      - name: Validate ACR secrets
+        if: github.event_name == 'push'
+        env:
+          ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+          ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
+        run: |
+          if [ -z "$ACR_USERNAME" ] || [ -z "$ACR_PASSWORD" ]; then
+            echo "::error::Missing ACR credentials. Please set repository/organization/production environment secrets ACR_USERNAME and ACR_PASSWORD."
+            exit 1
+          fi
+      - name: Log in to Aliyun Container Registry
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+      - name: Push the Docker image
+        if: github.event_name == 'push'
+        run: docker push "$REGISTRY/$IMAGE_NAME:$TAG"

@@ -3,3 +3,5 @@ node_modules
 .output
 .git
 .env
+.env.*
+pg_data
