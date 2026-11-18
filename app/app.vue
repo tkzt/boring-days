@@ -565,6 +565,8 @@ button {
 .calendar-app {
   position: relative;
   isolation: isolate;
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   padding: 32px;
   background: #edf4fc;
@@ -696,8 +698,10 @@ button {
 }
 
 .app-shell {
+  flex-shrink: 0;
+  width: 100%;
   max-width: 1380px;
-  margin: 0 auto;
+  margin: auto;
   background: rgba(255, 255, 255, .37);
   -webkit-backdrop-filter: blur(20px) saturate(135%);
   backdrop-filter: blur(20px) saturate(135%);
