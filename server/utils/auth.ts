@@ -10,7 +10,9 @@ export interface AuthenticatedUser {
 }
 
 function sessionSignature(payload: string) {
-  return createHmac('sha256', useRuntimeConfig().authSecret).update(payload).digest('base64url')
+  // Runtime environment overrides can parse a numeric-only secret as a number.
+  const secret = String(useRuntimeConfig().authSecret)
+  return createHmac('sha256', secret).update(payload).digest('base64url')
 }
 
 function encodeSession(userId: number) {

@@ -1,5 +1,20 @@
 <template>
   <main class="calendar-app" @click="closeContextMenu">
+    <div class="background-bubbles" aria-hidden="true">
+      <span v-for="bubble in backgroundBubbles" :key="bubble.id" class="background-bubble" :style="{
+        '--bubble-left': `${bubble.x}%`,
+        '--bubble-top': `${bubble.y}%`,
+        '--bubble-dx': `${bubble.dx}vw`,
+        '--bubble-dy': `${bubble.dy}vh`,
+        '--bubble-size': `${bubble.size}px`,
+        '--bubble-duration': `${bubble.duration}s`,
+        '--bubble-delay': `${bubble.delay}s`
+      }" @animationend="replaceBubble($event, bubble.id)">
+        <svg class="bubble-outline" viewBox="0 0 100 100" focusable="false">
+          <circle cx="50" cy="50" r="49" vector-effect="non-scaling-stroke" />
+        </svg>
+      </span>
+    </div>
     <NuxtRouteAnnouncer />
     <section v-if="authUser" class="app-shell">
       <header class="topbar">
@@ -19,10 +34,15 @@
       </header>
 
       <div class="status-legend" aria-label="日程状态说明">
-        <span v-for="status in statusOptions" :key="status.value"
-          :class="['legend-item', `status-${status.value}`]">
-          <i />{{ status.label }}
-        </span>
+        <button v-for="status in statusOptions" :key="status.value" type="button"
+          :class="['legend-item', `status-${status.value}`]"
+          :disabled="!backlogByStatus[status.value]?.count"
+          :title="backlogByStatus[status.value]?.count ? `全部月份共 ${backlogByStatus[status.value]?.count} 项${status.label}，点击跳转到最早一项所在月份` : `没有${status.label}的日程`"
+          @click="goToFirstBacklogEvent(status.value)">
+          <span class="legend-count"><span>{{ backlogByStatus[status.value]?.count ?? 0
+          }}</span></span>{{ status.label }}
+        </button>
+        <span class="legend-hint">全部月份 · 点击状态定位最早一项</span>
       </div>
 
       <section class="calendar" aria-label="月历">
@@ -37,14 +57,18 @@
             <time :datetime="day.key">{{ day.date.getDate() }}</time>
           </article>
           <div class="week-events">
-            <button v-for="segment in week.eventSegments" :key="`${segment.event.id}-${segment.startDate}`"
+            <button v-for="segment in week.eventSegments"
+              :key="`${segment.event.id}-${segment.startDate}`"
               :class="['event-chip', `status-${segment.event.status}`, eventSegmentClass(segment)]"
               :style="{ gridColumn: `${segment.startIndex + 1} / ${segment.endIndex + 2}`, gridRow: segment.row }"
-              :title="`${segment.event.title} - ${statusLabel(segment.event.status)}`" @click="openEdit(segment.event)"
+              :title="`${segment.event.title} - ${statusLabel(segment.event.status)}`"
+              @click="openEdit(segment.event)"
               @contextmenu.prevent.stop="openEventMenu($event, segment.event)">
               <template v-if="shouldShowEventLabel(segment.event, segment.startDate)">
-                <span v-if="segment.event.startTime && segment.event.eventDate === segment.startDate" class="event-time">{{
-                  segment.event.startTime.slice(0, 5) }}</span>{{ segment.event.title }}
+                <span
+                  v-if="segment.event.startTime && segment.event.eventDate === segment.startDate"
+                  class="event-time">{{
+                    segment.event.startTime.slice(0, 5) }}</span>{{ segment.event.title }}
               </template>
             </button>
           </div>
@@ -161,6 +185,12 @@ interface CalendarDay {
   isToday: boolean
 }
 
+interface BacklogSummary {
+  status: EventStatus
+  count: number
+  firstEventDate: string
+}
+
 interface EventSegment {
   event: CalendarEvent
   startIndex: number
@@ -186,6 +216,34 @@ type PendingDeletion =
   | { kind: 'event', event: CalendarEvent }
 
 const weekdays = ['周一', '周二', '周三', '周四', '周五', '周六', '周日']
+let nextBubbleId = 0
+function createBubble(stagger = false) {
+  const angle = Math.random() * Math.PI * 2
+  const distance = 10 + Math.random() * 18
+  const duration = 7 + Math.random() * 3
+  return {
+    id: nextBubbleId++,
+    x: 8 + Math.random() * 84,
+    y: 8 + Math.random() * 84,
+    dx: Math.cos(angle) * distance,
+    dy: Math.sin(angle) * distance,
+    size: 18 + Math.random() * 40,
+    duration,
+    delay: stagger ? -Math.random() * duration * .85 : 0
+  }
+}
+const backgroundBubbles = ref<ReturnType<typeof createBubble>[]>([])
+
+function replaceBubble(event: AnimationEvent, id: number) {
+  if (event.animationName !== 'bubble-drift' || event.target !== event.currentTarget) return
+  const index = backgroundBubbles.value.findIndex(bubble => bubble.id === id)
+  if (index !== -1) backgroundBubbles.value.splice(index, 1, createBubble())
+}
+
+onMounted(() => {
+  backgroundBubbles.value = Array.from({ length: 14 }, () => createBubble(true))
+})
+
 const statusOptions: Array<{ value: EventStatus, label: string }> = [
   { value: 'planned', label: '待开始' },
   { value: 'in_progress', label: '正在做' },
@@ -196,6 +254,7 @@ const statusOptions: Array<{ value: EventStatus, label: string }> = [
 
 const currentMonth = ref(new Date(new Date().getFullYear(), new Date().getMonth(), 1))
 const events = ref<CalendarEvent[]>([])
+const backlog = ref<BacklogSummary[]>([])
 const isEditorOpen = ref(false)
 const editingId = ref<number | null>(null)
 const isSaving = ref(false)
@@ -211,6 +270,7 @@ const emptyForm = () => ({ title: '', description: '', eventDate: formatDate(new
 const form = reactive(emptyForm())
 
 const monthTitle = computed(() => new Intl.DateTimeFormat('zh-CN', { year: 'numeric', month: 'long' }).format(currentMonth.value))
+const backlogByStatus = computed(() => Object.fromEntries(backlog.value.map(item => [item.status, item])) as Partial<Record<EventStatus, BacklogSummary>>)
 const calendarDays = computed(() => {
   const monthStart = new Date(currentMonth.value)
   const startOffset = (monthStart.getDay() + 6) % 7
@@ -351,10 +411,17 @@ async function executeDeletion() {
 }
 
 async function loadEvents() {
+  const requestedMonth = currentMonth.value
   const first = formatDate(currentMonth.value)
   const last = formatDate(new Date(currentMonth.value.getFullYear(), currentMonth.value.getMonth() + 1, 0))
   try {
-    events.value = await $fetch<CalendarEvent[]>('/api/events', { query: { from: first, to: last } })
+    const [monthEvents, summary] = await Promise.all([
+      $fetch<CalendarEvent[]>('/api/events', { query: { from: first, to: last } }),
+      $fetch<BacklogSummary[]>('/api/events/backlog')
+    ])
+    if (!authUser.value || requestedMonth !== currentMonth.value) return
+    events.value = monthEvents
+    backlog.value = summary
   } catch {
     errorMessage.value = '无法连接日程服务，请确认数据库已启动。'
   }
@@ -395,6 +462,7 @@ async function logout() {
   await $fetch('/api/auth/logout', { method: 'POST' })
   authUser.value = null
   events.value = []
+  backlog.value = []
   closeEditor()
   closeConfirmation()
 }
@@ -406,6 +474,14 @@ function moveMonth(direction: number) {
 
 function goToday() {
   currentMonth.value = new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  loadEvents()
+}
+
+function goToFirstBacklogEvent(status: EventStatus) {
+  const summary = backlogByStatus.value[status]
+  if (!summary) return
+  const date = new Date(`${summary.firstEventDate}T00:00:00`)
+  currentMonth.value = new Date(date.getFullYear(), date.getMonth(), 1)
   loadEvents()
 }
 
@@ -463,7 +539,7 @@ onMounted(loadSession)
 <style>
 :root {
   color: #202124;
-  background: #f5f5f7;
+  background: #edf4fc;
   font-family: 'Avenir Next', 'PingFang SC', sans-serif;
 }
 
@@ -487,19 +563,147 @@ button {
 }
 
 .calendar-app {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   padding: 32px;
-  background: #f5f5f7;
+  background: #edf4fc;
+}
+
+.background-bubbles {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.background-bubble {
+  --bubble-color: rgba(45, 111, 190, .24);
+  position: absolute;
+  top: var(--bubble-top);
+  left: var(--bubble-left);
+  width: var(--bubble-size);
+  height: var(--bubble-size);
+  border-radius: 50%;
+  background: var(--bubble-color);
+  animation:
+    bubble-drift var(--bubble-duration) var(--bubble-delay) linear both,
+    bubble-fill var(--bubble-duration) var(--bubble-delay) steps(1, end) both;
+}
+
+.background-bubble::before,
+.background-bubble::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .95);
+  transform: rotate(-38deg);
+  animation: bubble-highlight var(--bubble-duration) var(--bubble-delay) steps(1, end) both;
+}
+
+.background-bubble::before {
+  top: 14%;
+  right: 20%;
+  width: 10%;
+  height: 19%;
+}
+
+.background-bubble::after {
+  top: 36%;
+  right: 15%;
+  width: 5%;
+  height: 9%;
+  background: rgba(255, 255, 255, .85);
+}
+
+.bubble-outline {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: var(--bubble-color);
+  stroke-width: .6px;
+  stroke-dasharray: 9 4 2 7 5 3 12 6;
+  stroke-opacity: 0;
+  animation: bubble-border-fade var(--bubble-duration) var(--bubble-delay) linear both;
+}
+
+@keyframes bubble-drift {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(.5);
+  }
+
+  12% {
+    opacity: 1;
+  }
+
+  92% {
+    transform: translate3d(var(--bubble-dx), var(--bubble-dy), 0) scale(2.8);
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(var(--bubble-dx), var(--bubble-dy), 0) scale(2.8);
+  }
+}
+
+@keyframes bubble-fill {
+  0% {
+    background: var(--bubble-color);
+  }
+
+  92%,
+  100% {
+    background: transparent;
+  }
+}
+
+@keyframes bubble-highlight {
+  0% {
+    opacity: 1;
+  }
+
+  92%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes bubble-border-fade {
+  0% {
+    stroke-opacity: 0;
+    animation-timing-function: steps(1, end);
+  }
+
+  92% {
+    stroke-opacity: 1;
+    animation-timing-function: linear;
+  }
+
+  100% {
+    stroke-opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .background-bubbles {
+    display: none;
+  }
 }
 
 .app-shell {
   max-width: 1380px;
   margin: 0 auto;
-  background: #fff;
-  border: 1px solid #dedee3;
-  border-radius: 8px;
+  background: rgba(255, 255, 255, .37);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+  backdrop-filter: blur(20px) saturate(135%);
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 16px 38px rgba(26, 28, 32, .08);
+  box-shadow: 0 16px 38px rgba(44, 78, 118, .09), inset 0 1px 0 rgba(255, 255, 255, .8);
 }
 
 .topbar {
@@ -588,10 +792,11 @@ h2 {
   width: min(100%, 380px);
   gap: 16px;
   padding: 32px;
-  border: 1px solid #dedee3;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 16px 38px rgba(26, 28, 32, .08);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, .37);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+  backdrop-filter: blur(20px) saturate(135%);
+  box-shadow: 0 16px 38px rgba(44, 78, 118, .09), inset 0 1px 0 rgba(255, 255, 255, .8);
 }
 
 .login-intro {
@@ -658,13 +863,57 @@ h2 {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  border: 0;
+  border-radius: 6px;
+  padding: 3px 4px;
+  background: transparent;
+  transition: background-color .15s ease, box-shadow .15s ease;
 }
 
-.legend-item i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.legend-item:not(:disabled) {
+  cursor: pointer;
+}
+
+.legend-item:not(:disabled):hover {
+  background: color-mix(in srgb, currentColor 14%, white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.legend-item:not(:disabled):hover .legend-count {
+  box-shadow: 0 2px 6px color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.legend-hint {
+  align-self: center;
+  margin-left: auto;
+  color: #777981;
+  font-size: 12px;
+}
+
+.legend-item:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.legend-item:disabled {
+  cursor: default;
+}
+
+.legend-count {
+  display: inline-grid;
+  min-width: 24px;
+  height: 22px;
+  place-items: center;
+  border-radius: 6px;
+  padding: 0 6px;
   background: currentColor;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.legend-count span {
+  color: #fff;
 }
 
 .status-planned {
@@ -716,7 +965,7 @@ h2 {
   padding: 10px 8px;
   border-right: 1px solid #e8e8ec;
   border-bottom: 1px solid #e8e8ec;
-  background: #fff;
+  background: rgba(255, 255, 255, .12);
 }
 
 .day-cell:last-child {
